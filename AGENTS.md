@@ -1,8 +1,9 @@
 # pedal-codec
 
 A Raspberry Pi audio board, in the spirit of Raspberry Pi's Codec Zero, built around Texas
-Instruments' **TAC5242**: two inputs switchable between Instrument and Line, each with optional
-+48 V phantom power, and two line outputs, all on JST XH connectors. Power, audio and control come
+Instruments' **TAC5242**: two inputs switchable between Instrument, Line and Mic, each with
+optional +48 V phantom power, and two line outputs, all on JST XH connectors (3-pin inputs, 2-pin
+outputs), on a full-size HAT+. Power, audio and control come
 through the Pi's 40-pin header. Started 2026-11-11 as an aside from the pedal; it may later replace
 the pedal's SparkFun WM8960 board, which is a separate decision.
 

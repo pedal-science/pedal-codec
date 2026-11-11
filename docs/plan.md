@@ -5,12 +5,12 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. The owner answers the open questions in [design.md](design.md): XH 3-pin inputs for phantom
-   power, a Mic mode, the analogue rail, HAT+ size for v1, and whether the board also takes the
-   TAC5212.
-2. Then phase 1.
+1. Phase 1. The owner's four answers are in [design.md](design.md) ("Decided"); the one question
+   left, whether the board also takes the TAC5212, is phase 1's first step.
 
-Last changed 2026-11-11: repository created, design and plan written.
+Last changed 2026-11-11: the owner decided XH 3-pin inputs, a Mic mode, full-size HAT+ and the
+filtered 5 V rail; the design now has the three-mode input, the fixed ~20 dB mic gain and its
+reasoning, and the 5 V power scheme.
 
 ## Tools
 
@@ -27,15 +27,19 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 ## Phase 1: decisions and numbers
 
-- Settle the open questions in [design.md](design.md).
 - Read the TAC5212 datasheet: can one footprint take either part, and at what cost in straps?
+  The owner decides from that.
 - Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB
-  search): AVDD LDO, the analogue rail, the phantom boost and its post-regulator, the JFET op-amp,
-  the FDA, the output op-amp, the relays, the EEPROM, the oscillator. Prefer JLCPCB "basic" parts
-  for passives.
+  search): AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its
+  post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amp, the relays
+  and their drivers, the EEPROM, the oscillator. Prefer JLCPCB "basic" parts for passives.
 - Simulate in ngspice (the `spice` skill), with models from the makers where they exist:
-  - each input mode: gain, headroom against the analogue rail and the codec's +8.2 dBu, noise
-    referred to the input, frequency response with the 5 kΩ input and the coupling capacitors;
+  - each input mode (Instrument, Line, Mic): gain, headroom against the 5 V rail and the codec's
+    +8.2 dBu, noise referred to the input, frequency response with the 5 kΩ input and the coupling
+    capacitors;
+  - the Mic path's total noise against the codec's floor, to fix its gain (about 20 dB) and choose
+    the preamp's op-amp;
+  - the Pi's 5 V ripple and load steps through the filter and the mid-rail reference to the codec;
   - the phantom network: the 48 V ramp, the thump at the connector, the protection with a shorted
     XLR;
   - the output stage: level, the mute's click, stability into a cable's capacitance.
@@ -93,7 +97,8 @@ On piv, the bench device, not vip (vip's WM8960 stays wired as it is).
 
 Evidence into `bench-results/<date>-<what>/`, as the pedal does.
 
-- Noise floor and headroom per input mode, phantom off and on.
+- Noise floor and headroom per input mode, phantom off and on, and the Mic path's equivalent input
+  noise with 150 Ω on its input.
 - THD+N and frequency response, in and out.
 - Round-trip latency, linear-phase against low-latency filters, Pi-master against codec-master.
 - Interference from the Pi: its 5 V ripple and its load steps, seen at the outputs.

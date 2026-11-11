@@ -15,6 +15,15 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
 - Supporting parts as needed: an LDO for the supply, op-amps for the instrument inputs, a phantom
   supply, passives.
 
+## Decided (owner, 2026-11-11)
+
+1. **The inputs are on JST XH 3-pin** (ground, hot, cold), so phantom power is fed to the
+   standard. The outputs stay on XH 2-pin, unbalanced.
+2. **Each input has a third mode, Mic**, with its own preamp: Instrument, Line or Mic.
+3. **v1 is a full-size HAT+** (65 × 56.5 mm).
+4. **The op-amps run from the Pi's 5 V, filtered.** No boost for an analogue rail; the only boost
+   on the board is the phantom supply's.
+
 ## What the TAC5242 changes
 
 Read from the datasheet, [SLASF27A](https://www.ti.com/lit/gpn/TAC5242) (November 2024).
@@ -78,59 +87,90 @@ feeds need four 63 V coupling capacitors and a high-voltage boost converter with
 two mode relays, four buffers or differential drivers, two output stages and four XH connectors,
 and that is more than the 30 mm strip beside the header holds on one side.
 
-**v1 is a full-size HAT+ (65 × 56.5 mm, M2.5 holes on 58 × 49 mm)**, with room for test points and
-alternative footprints. A Zero-size board can follow once v1 has shown which options are needed.
-**Open:** confirm.
+**v1 is a full-size HAT+ (65 × 56.5 mm, M2.5 holes on 58 × 49 mm)** (decided), with room for test
+points and alternative footprints. A Zero-size board can follow once v1 has shown which options
+are needed.
 
 ## Connectors
 
 **Phantom power needs three wires.** P48 (IEC 61938) feeds +48 V through matched 6.81 kΩ resistors
 to both signal conductors, hot and cold, and returns it on the screen, pin 1 of the XLR. A 2-pin
-connector carries signal and ground only, so a balanced microphone can't be wired to it and phantom
-power can't be fed through it to the standard.
+connector carries signal and ground only, which is why the inputs are on 3-pin.
 
-**Recommended:** the inputs on **JST XH 3-pin** (ground, hot, cold). A combo XLR/¼″ jack on the
-panel then wires straight to it: XLR pins 1, 2, 3, and the ¼″ tip and ring to hot and cold. A TS
-instrument lead grounds cold through its sleeve, and the board treats that as unbalanced. The
-outputs can stay on XH 2-pin (unbalanced line), or go to 3-pin as well, which would let a later
-board drive them balanced. **Open:** the owner's choice.
+| Connector | Part | Pins |
+|---|---|---|
+| IN 1, IN 2 | JST XH 3-pin (B3B-XH-A) | 1 ground, 2 hot, 3 cold |
+| OUT 1, OUT 2 | JST XH 2-pin (B2B-XH-A) | 1 ground, 2 signal |
+
+A combo XLR/¼″ jack on the panel wires straight to an input: XLR pins 1, 2, 3, and the ¼″ sleeve,
+tip and ring. A TS instrument lead grounds cold through its sleeve, and the board treats that as
+unbalanced.
 
 ## Blocks
 
 ```
-Pi header ─ 5 V ─┬─ filter ─ low-noise LDO ─ 3.3 V AVDD ─ TAC5242
-                 ├─ boost ─ post-regulator ─ analogue rail (op-amps)
-                 └─ boost ≥ 60 V switch ─ filter ─ +48 V ─ per-channel switch ─ 6.81 k ×2
+Pi header ─ 5 V ─┬─ load switch (EN from 3.3 V) ─ ferrite + LC ─ analogue 5 V ─ op-amps, relays
+                 │                                              └─ RC-filtered, buffered mid-rail (≈ 2.45 V)
+                 ├─ filter ─ low-noise LDO (EN from 3.3 V) ─ 3.3 V AVDD ─ TAC5242
+                 └─ boost, ≥ 60 V switch ─ filter ─ +48 V ─ per-channel switch ─ 6.81 k ×2
           3.3 V ─ IOVDD, EEPROM, logic
           I2S (GPIO 18–21) ─ BCLK, FSYNC, DIN, DOUT
 
-XH in ─ protection ─ mode relay ─┬─ Instrument: 1 MΩ ─ JFET buffer ─┐
-                                 └─ Line: balanced receiver ────────┴─ differential driver ─ 10 µF ─ IN1P/M
+                       ┌─ K1 off: Instrument ─ 1 MΩ ─ JFET buffer ──────────────────────┐
+XH in ─ protection ─ K1┤                                                                ├─ FDA ─ 10 µF ─ IN1P/M
+(gnd, hot, cold)       └─ K1 on: 47 µF ×2 ─ K2 ┬─ off: Line ────────────────────────────┤
+                          (+48 V via K1 only)  └─ on:  Mic ─ low-noise preamp, ≈ 20 dB ─┘
 
 OUT1P/M ─ differential-to-single-ended stage ─ mute ─ 10 µF ─ 100 Ω ─ XH out (100 k bleed)
 ```
 
 ### Input
 
-- **Instrument:** 1 MΩ to bias, a JFET-input op-amp (the pedal's buffer used the OPA2197;
-  OPA1642 and OPA1656 are candidates), then a fully differential amplifier (FDA; OPA1637 is
-  designed for driving audio ADCs) into the codec's differential input. Gain chosen in phase 1 so
-  a hot passive pickup reaches about −6 dBFS.
-- **Line:** a balanced input through the same FDA, wired inverting so the source sees its input
-  resistors (≥ 10 kΩ per leg) and the op-amp sees an attenuated signal. Unbalanced sources work with
-  cold grounded. Gain set so +4 dBu nominal leaves ≥ 10 dB of headroom (clip about +14 dBu), which
-  means attenuation into the codec's +8.2 dBu full scale.
-- **The mode switch is a relay** per channel (a small DPDT signal relay), not an analogue switch:
-  the 1 MΩ node is the noise-sensitive one, and a relay keeps a semiconductor's leakage and
-  capacitance off it. A relay's de-energised state is the default, so it is the mode with no
-  phantom power.
-- **Mic gain. Open.** Phantom power implies condenser microphones or active DI boxes. A condenser
-  mic gives roughly −50 to −30 dBu, and with no gain in the codec it would sit 40–55 dB below full
-  scale. The codec's floor (about 2.2 µVrms A-weighted against 2 Vrms) leaves only about 65 dB of
-  signal-to-noise for such a mic. Three answers: (a) phantom is for active DIs and line-level
-  devices only, with no mic gain; (b) a third mode, **Mic**, with a dedicated preamp (THAT1512 or
-  INA163-class, about 40 dB); (c) the FDA's gain switched. (b) is the right one if microphones
-  matter.
+Each input has three modes, set by two relays (small DPDT signal relays with 5 V coils, driven from
+GPIO through a transistor, with a flyback diode):
+
+| Mode | K1 | K2 | Phantom allowed | Path |
+|---|---|---|---|---|
+| Instrument | off | — | **No**: the feed runs through K1 | 1 MΩ, JFET buffer, FDA |
+| Line | on | off | Yes (active DIs, line-level devices that want it) | FDA, inverting |
+| Mic | on | on | Yes | Preamp, FDA |
+
+Both relays de-energised is Instrument, with no path for +48 V, so a board with no software
+running, or with the Pi in standby, can never put phantom on an instrument.
+
+Relays rather than analogue switches: the 1 MΩ node is the noise-sensitive one, a relay keeps a
+semiconductor's leakage and capacitance off it, and a relay contact doesn't care that the
+balanced side can carry 48 V before its coupling capacitors.
+
+- **Instrument:** 1 MΩ to the mid-rail, a JFET-input rail-to-rail op-amp (the pedal's buffer uses
+  the OPA2197, which runs from 4.5 V), then the fully differential amplifier (FDA) into the codec.
+  On the 5 V rail the buffer swings about 4.8 Vpp (1.7 Vrms, +6.8 dBu), which is ample for passive
+  pickups and the edge for the hottest active ones; the FDA's gain maps that onto the codec's
+  2 Vrms full scale.
+- **Line:** the balanced input into the FDA wired inverting, so the source sees its input
+  resistors (≥ 10 kΩ per leg) and the op-amp's own inputs sit at the mid-rail whatever the
+  source does. Unbalanced sources work with cold grounded. Gain about −6 dB, so +4 dBu nominal has
+  10 dB of headroom (clip about +14 dBu) on a 5 V rail.
+- **Mic:** a low-noise differential preamp (two op-amps as the first stage of an instrumentation
+  amplifier, unity common-mode gain), biased at mid-rail after the phantom coupling capacitors,
+  then the FDA. Input impedance about 2 kΩ, as microphones expect.
+- **The FDA** is shared by all three modes (OPA1637 is the candidate: 3–36 V supply, rail-to-rail
+  output, made for driving audio ADCs), its output common mode set to the mid-rail, and AC-coupled
+  into the codec (10 µF against 5 kΩ: 3.2 Hz).
+
+**Why the mic gain can be fixed at about 20 dB.** The codec's own noise is about 2.2 µVrms
+A-weighted (119 dB below 2 Vrms), which is −110.8 dBu. Referred to the mic input through 20 dB of
+gain it is −130.8 dBu, about the thermal noise of the microphone's own 150 Ω (−131 dBu over 20 Hz–
+20 kHz). More gain buys almost no noise and costs headroom. At 20 dB the input clips at −12 dBu,
+which a typical condenser (10 mV/Pa) reaches at about 120 dB SPL. So the preamp has a fixed gain,
+about 20 dB, chosen exactly in phase 1 by simulating the whole chain's noise, and the 5 V rail is
+no limit for signals that small.
+
+**The preamp's op-amps on 5 V.** The candidates need a low voltage noise (≤ 3 nV/√Hz, since the
+source is 150 Ω), a supply down to 4.5 V and an input common-mode range that includes 2.45 V with
+the signal around it: OPA1612 (1.1 nV/√Hz, but its inputs need 2 V from each rail, which leaves
+±0.5 V on 5 V: enough at mic level, checked in phase 1), OPA1656 (2.9 nV/√Hz, rail-to-rail
+output). Phase 1 picks by simulation and LCSC stock.
 
 ### Phantom power
 
@@ -139,19 +179,20 @@ OUT1P/M ─ differential-to-single-ended stage ─ mute ─ 10 µF ─ 100 Ω �
   enabled only while some channel has phantom on.
 - Per channel: a high-side switch, a slow ramp to keep the switch-on thump small, 6.81 kΩ 0.1%
   matched pair, 47 µF 63 V coupling capacitors on hot and cold, and the usual protection against a
-  shorted or hot-plugged XLR (series resistors and clamps to the rails).
-- **Interlock:** the phantom feed runs through a contact of the mode relay, so +48 V can reach the
-  connector only with the relay in its Line position. A software fault can't put it on an
-  instrument.
+  shorted or hot-plugged XLR (series resistors and clamps to the rails), in front of both the Line
+  and the Mic paths.
+- **Interlock:** the phantom feed runs through a contact of K1, so +48 V can reach the connector
+  only in Line or Mic mode. A software fault can't put it on an instrument.
 - Budget: P48 allows up to 10 mA per microphone, so 2 × 48 V × 10 mA ≈ 1 W out, about 250 mA from
   the Pi's 5 V.
 
 ### Output
 
 The codec's differential line out (2 Vrms full scale, ≥ 1.2 kΩ load) into a differential-to-
-single-ended op-amp stage, a mute (default on, so nothing reaches the jack while the Pi boots),
-then 10 µF, 100 Ω and a 100 kΩ bleed to the connector. The level at full scale (+2 to +8 dBu) is
-chosen in phase 1.
+single-ended op-amp stage on the 5 V rail, a mute (default on, so nothing reaches the jack while
+the Pi boots), then 10 µF, 100 Ω and a 100 kΩ bleed to the connector. On 5 V the stage swings about
+1.7 Vrms, so full scale at the output is about +6 dBu (1.5–1.7 Vrms): a gain of 0.75–0.85 from the
+codec's 2 Vrms, set in phase 1.
 
 ### Power
 
@@ -159,11 +200,21 @@ chosen in phase 1.
 |---|---|---|
 | 3.3 V AVDD | Pi 5 V → LC filter → low-noise LDO (TPS7A20 or LP5907 class) | Codec AVDD |
 | 3.3 V IOVDD | Pi 3.3 V | Codec IOVDD, MD straps, EEPROM, logic |
-| Analogue | **Open.** Pi 5 V filtered (simplest, ~±2 V of swing) or a boost to ~12 V with a low-noise LDO (headroom for active pickups and +14 dBu line) | Buffers, FDAs, output stages |
+| Analogue 5 V | Pi 5 V → load switch → ferrite and LC filter, optionally a capacitance multiplier (owner, 2026-11-11: no boost) | Buffers, preamps, FDAs, output stages, relay coils (on their own branch of the filter) |
+| Mid-rail | The analogue 5 V halved, RC-filtered to well below 1 Hz and buffered | Bias for every stage |
 | +48 V | Its own boost, above | Phantom only |
 
-**HAT+ standby:** the Pi can hold 5 V on with 3.3 V off. Every converter fed from 5 V is enabled
-from 3.3 V, so nothing back-powers the codec's IOVDD, the EEPROM or the Pi's pins in that state.
+The Pi's 5 V moves with its load (4.75–5.1 V, with steps when the CPU or USB load changes), so the
+mid-rail reference, not the rail, is what every stage's signal is measured against: its filter is
+the one that matters, and phase 1 simulates the rail's ripple through to the codec. The relay
+coils are kept off the analogue branch so their switching current doesn't step the audio rail.
+
+**HAT+ standby:** the Pi can hold 5 V on with 3.3 V off. The analogue load switch, the AVDD LDO and
+the phantom boost are all enabled from 3.3 V, so nothing back-powers the codec's IOVDD, the EEPROM
+or the Pi's pins in that state.
+
+**Budget from the Pi's 5 V**, worst case: phantom ≈ 250 mA, four relay coils ≈ 100 mA, op-amps
+≈ 50 mA, codec ≈ 30 mA: under 450 mA.
 
 ### Header use
 
@@ -174,8 +225,9 @@ from 3.3 V, so nothing back-powers the codec's IOVDD, the EEPROM or the Pi's pin
 | 19 | FSYNC (PCM_FS) |
 | 20 | Codec DOUT → Pi (PCM_DIN) |
 | 21 | Pi → codec DIN (PCM_DOUT) |
-| 5, 6 | Input 1 and 2 mode (relay drivers; low = Line, the de-energised state; to be confirmed) |
-| 22, 23 | Input 1 and 2 phantom enable (pulled down: off by default) |
+| 5, 6 | Input 1 and 2, K1 (high = balanced: Line or Mic; pulled down: Instrument) |
+| 12, 13 | Input 1 and 2, K2 (high = Mic; pulled down: Line) |
+| 22, 23 | Input 1 and 2 phantom enable (pulled down: off) |
 | 24 | Output mute (pulled to muted) |
 | 25 | Codec GPO (clock-error interrupt) |
 
