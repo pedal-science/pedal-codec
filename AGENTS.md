@@ -1,11 +1,12 @@
 # pedal-codec
 
 A Raspberry Pi audio board, in the spirit of Raspberry Pi's Codec Zero, built around Texas
-Instruments' **TAC5242**: two inputs for combo XLR/¼″ jacks (Instrument or Line on the ¼″, Mic
-or Line on the XLR, chosen by the plug and a panel switch), each with optional +48 V phantom power
-from a panel switch, and two line outputs, all on JST XH connectors, on a full-size HAT+. Power, audio and control come
-through the Pi's 40-pin header. Started 2026-11-11 as an aside from the pedal; it may later replace
-the pedal's SparkFun WM8960 board, which is a separate decision.
+Instruments' **TAC5242**: two inputs for combo XLR/¼″ jacks (Instrument or Line on the ¼″, Mic or
+Line on the XLR, chosen by the plug and a panel switch), each with optional +48 V phantom power from
+a panel switch, and two line outputs, each both unbalanced and balanced (for XLR), all on JST XH
+connectors, on a full-size HAT+. Power, audio and control come through the Pi's 40-pin header.
+Started 2026-11-11 as an aside from the pedal; it may later replace the pedal's SparkFun WM8960
+board, which is a separate decision.
 
 This file is canonical for every agent; `CLAUDE.md` only imports it. The pedal as a system is
 `../pedal.project/AGENTS.md`, and `../pedal.project/docs/working-across-repos.md` says which

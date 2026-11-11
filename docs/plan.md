@@ -5,10 +5,13 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"); the one question
-   left, whether the board also takes the TAC5212, is phase 1's first step.
+1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"). Two questions are
+   left: whether the board also takes the TAC5212 (phase 1's first step), and whether the balanced
+   outputs get the −20 dB pad, and with a panel switch or a jumper.
 
-Last changed 2026-11-11: the inputs reworked around combo jacks with their XLR and ¼″ halves
+Last changed 2026-11-11: balanced outputs added, an XH 3-pin per output for a male XLR, carrying
+the same audio as the unbalanced 2-pin, after the pedal's own XLR output design. Before that the
+same day: the inputs reworked around combo jacks with their XLR and ¼″ halves
 wired separately. The plug chooses the path, a panel switch per input chooses Line, and phantom
 power comes only from a panel switch and reaches only the XLR pins. Before that the same day: a
 Mic mode, full-size HAT+, and the filtered 5 V rail.
@@ -32,7 +35,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   The owner decides from that.
 - Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB
   search): AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its
-  post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amp, the relays
+  post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amps (the
+  unbalanced stage, and the balanced followers: a dual per output), the relays
   (latching or not) and their drivers, the EEPROM, the oscillator, and the combo jack: one whose
   ¼″ switching contact is isolated from the tip, and the panel's switches and LEDs. Prefer JLCPCB "basic" parts for passives.
 - Simulate in ngspice (the `spice` skill), with models from the makers where they exist:
@@ -44,7 +48,10 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   - the Pi's 5 V ripple and load steps through the filter and the mid-rail reference to the codec;
   - the phantom network: the 48 V ramp, the thump at the connector, the protection with a shorted
     XLR;
-  - the output stage: level, the mute's click, stability into a cable's capacitance.
+  - the output stages: level, the mute's click, stability into a cable's capacitance;
+  - the balanced outputs' phantom survival, starting from the pedal's
+    `../pedal.project/schematic/balanced-output-sim.py` with this board's 5 V rail and its
+    capacitance under the clamps: phantom switched on, a charged pin shorted, a hot plug.
 - **Done when** `docs/design.md` has every value with its reason, no "Open" left that blocks the
   schematic, and the SPICE decks and their results are committed under `sim/`.
 
@@ -52,7 +59,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 - A KiCad 10 project in `hardware/`, hierarchical: header and EEPROM, power, phantom supply, codec
   and straps, input channel (one sheet used twice: both halves of the jack, KA and KB, the panel
-  logic), outputs, the panel connector and v1's on-board switches.
+  logic), output channel (one sheet used twice: the mute, the unbalanced stage, the balanced
+  followers and their protection), the panel connector and v1's on-board switches.
 - `LCSC` and `MPN` fields on every symbol from the start; footprints chosen for JLCPCB assembly
   (0402 or 0603 passives, the codec's VQFN-24 with its thermal pad).
 - Test points on every rail, BCLK, FSYNC, both data lines, MD0–MD5, the phantom rail and each
@@ -63,9 +71,11 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 ## Phase 3: layout
 
-- The HAT+ outline (65 × 56.5 mm, M2.5 holes on 58 × 49 mm), the 40-pin header, the input,
-  output and panel connectors along the edges, clear of the Pi 5's camera, display and PCIe connectors, with 16 mm
-  standoffs so the Active Cooler fits beneath it.
+- The HAT+ outline (65 × 56.5 mm, M2.5 holes on 58 × 49 mm), the 40-pin header, the input, output
+  and panel connectors along the edges, clear of the Pi 5's camera, display and PCIe connectors,
+  with 16 mm standoffs so the Active Cooler fits beneath it. Nine connectors now (four input,
+  four output, the panel's) take about 110 mm of edge in XH's 2.5 mm pitch, against about 120 mm
+  of edge the header leaves free: place them first, then everything else.
 - **4 layers**: signal, unbroken ground, power, signal. The boost converters in the corner
   furthest from the inputs, their switching loops small, the 1 MΩ nodes short and guarded. One
   ground plane, not split; analogue and digital kept apart by placement.
@@ -105,6 +115,9 @@ Evidence into `bench-results/<date>-<what>/`, as the pedal does.
 - Noise floor and headroom per input mode, phantom off and on, and the Mic path's equivalent input
   noise with 150 Ω on its input.
 - THD+N and frequency response, in and out.
+- The balanced outputs: the two legs' impedances matched, level at full scale, and phantom power
+  switched on, left on and hot-plugged (a phantom-powered input, such as the SSL 2+'s, as the
+  pedal plans).
 - Round-trip latency, linear-phase against low-latency filters, Pi-master against codec-master.
 - Interference from the Pi: its 5 V ripple and its load steps, seen at the outputs.
 - **Done when** each number is in `bench-results/` and set against the datasheet's.

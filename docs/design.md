@@ -14,6 +14,8 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
 - Power, digital audio and control through the Pi's header, GPIO pins included.
 - Supporting parts as needed: an LDO for the supply, op-amps for the instrument inputs, a phantom
   supply, passives.
+- Later the same day, since the board is full-size: **two more output connectors, balanced**, for
+  the same two outputs, wired to XLR sockets on the panel.
 
 ## Decided (owner, 2026-11-11)
 
@@ -31,6 +33,8 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
    the Pi. Phantom power has a switch and an LED per input, reaches only the XLR pins, and is never
    switched on automatically or by software. The Pi reads every switch and the plug detection, so
    software can show the state, but it can't change it.
+6. **Each output is also balanced**, on its own XH 3-pin for a male XLR panel socket, carrying the
+   same audio as its unbalanced XH 2-pin. Both forms are live at once.
 
 Why not detect everything (asked 2026-11-11): the board can tell which half of the jack is in use,
 TS from TRS, a passive pickup's few kΩ from a dynamic mic's 150–600 Ω, and, once phantom is on,
@@ -117,7 +121,8 @@ XLR half needs three pins of its own, and keeping the ¼″ half on separate pin
 |---|---|---|
 | IN 1 XLR, IN 2 XLR | JST XH 3-pin (B3B-XH-A) | 1 ground (XLR 1), 2 hot (XLR 2), 3 cold (XLR 3) |
 | IN 1 ¼″, IN 2 ¼″ | JST XH 4-pin (B4B-XH-A) | 1 sleeve, 2 tip, 3 ring, 4 insert switch |
-| OUT 1, OUT 2 | JST XH 2-pin (B2B-XH-A) | 1 ground, 2 signal |
+| OUT 1, OUT 2 | JST XH 2-pin (B2B-XH-A) | 1 ground, 2 signal: unbalanced, for a ¼″ TS jack |
+| OUT 1 BAL, OUT 2 BAL | JST XH 3-pin (B3B-XH-A) | 1 SHIELD (XLR pin 1), 2 hot, 3 cold: balanced, for a male XLR panel socket (the pedal's choice is the Neutrik NC3MD-LX) |
 | PANEL | One connector, part chosen in phase 2 (about 10 pins) | Ground, both inputs' Line switches, both phantom switches, both phantom LEDs |
 
 **The combo jack** needs a switching contact on its ¼″ side, **isolated** from the tip. A contact
@@ -144,7 +149,8 @@ XLR 2/3 ─ 47 µF ×2 ─ mic preamp, ≈ 20 dB ─────┘ (plug)  ─ 
 ¼″ tip/ring ─────────────────────────────────┐ KA          │
 XLR 2/3 (after the 47 µF) ───────────────────┘ (plug) ─ Line ┘
 
-OUT1P/M ─ differential-to-single-ended stage ─ mute ─ 10 µF ─ 100 Ω ─ XH out (100 k bleed)
+OUT1P/M ─ mute ─┬─ differential-to-single-ended stage ─ 10 µF ─ 100 Ω ─ OUT 1, unbalanced
+                └─ followers ×2 ─ phantom-proof coupling ─ OUT 1 BAL, balanced ("Output" below)
 ```
 
 ### Input
@@ -228,11 +234,68 @@ output). Phase 1 picks by simulation and LCSC stock.
 
 ### Output
 
-The codec's differential line out (2 Vrms full scale, ≥ 1.2 kΩ load) into a differential-to-
-single-ended op-amp stage on the 5 V rail, a mute (default on, so nothing reaches the jack while
-the Pi boots), then 10 µF, 100 Ω and a 100 kΩ bleed to the connector. On 5 V the stage swings about
-1.7 Vrms, so full scale at the output is about +6 dBu (1.5–1.7 Vrms): a gain of 0.75–0.85 from the
-codec's 2 Vrms, set in phase 1.
+Each of the two logical outputs appears twice, at once: **unbalanced** on an XH 2-pin, for a ¼″ TS
+jack, and **balanced** on an XH 3-pin, for a male XLR panel socket. That is two signals on four
+connectors, not four outputs; the two forms of one output always carry the same audio.
+
+```
+OUT1P/M ─ 10 µF ×2 ─ mute (K_M) ─┬─ diff-to-SE stage ─ 10 µF ─ 100 Ω ─ OUT 1 (100 k bleed)
+                                  │
+                                  └─ pad (−20 dB, optional) ─ follower ×2 ─ 100 Ω ─ 47 µF 63 V ─ 10 Ω ─ OUT 1 BAL pin 2
+                                                                         (P → hot, M → cold)   clamps ┘ (100 k bleed) pin 3
+```
+
+**The mute** comes first, so one element silences both forms: K_M, a DPDT relay per output, whose
+de-energised state ties each leg to the mid-rail through 1 kΩ (the pedal's arrangement: a load, not
+a short across the codec's output). GPIO 24 drives both outputs' relays, pulled to muted, so
+nothing reaches either jack while the Pi boots, in standby or before the software unmutes.
+
+**Unbalanced:** a differential-to-single-ended op-amp stage, then 10 µF, 100 Ω and a 100 kΩ bleed to
+the connector. On 5 V the stage swings about 1.7 Vrms, so full scale at the output is about +6 dBu
+(1.5–1.7 Vrms): a gain of 0.75–0.85 from the codec's 2 Vrms, set in phase 1.
+
+**Balanced:** the pedal worked this out for its own XLR outputs on 2026-10-14, in
+[balanced-outputs.md](https://github.com/pedal-science/pedal.project/blob/main/docs/balanced-outputs.md)
+(step 2), with a simulation in
+[schematic/balanced-output-sim.py](https://github.com/pedal-science/pedal.project/blob/main/schematic/balanced-output-sim.py).
+This board takes that design, with two differences.
+
+- **The codec already drives both legs.** The pedal's WM8960 has single-ended outputs, so its
+  driver makes cold with an inverter. The TAC5242's output is differential: hot follows OUTxP and
+  cold follows OUTxM, through two identical unity followers on the 5 V rail. Symmetric drive comes
+  from the codec, and the two legs are the same circuit.
+- **5 V, not 9 V.** Each follower swings about 1.7 Vrms, so the pair could give +12.8 dBu
+  differentially; at unity gain, codec full scale is 2 Vrms between pins 2 and 3, **+8.2 dBu**,
+  with the op-amps well inside their swing. More level (up to about +12 dBu) is a resistor's
+  change, decided in phase 1.
+
+From the pedal's design, unchanged:
+
+- **Balance comes from matched legs**, not from symmetric signal: the same 100 Ω (1 %), the 47 µF
+  capacitors paired to 5 %, the same op-amp (a dual per output, one half per leg), the same 10 Ω
+  and bleed on each pin.
+- **Phantom power is survived, not merely tolerated.** A stage box may put +48 V on pins 2 and 3.
+  So: 47 µF 63 V bipolar coupling capacitors; 100 kΩ bleeds on the connector side; 10 Ω between
+  each capacitor and its pin, which took the pedal's simulated clamp current on a shorted, charged
+  pin from 69 A to 3.7 A; Schottky clamps from each driver-side node to the analogue 5 V and from
+  ground. Here the clamps return into the 5 V rail and its filter, so phase 1 re-runs the
+  simulation with this board's rail and its capacitance.
+- **A −20 dB pad, optional**, at the followers' input so the output impedances, and the balance,
+  never change. It is for mic inputs on stage boxes, many of which run out of headroom near
+  +8.2 dBu at minimum gain. **Open:** fit it, and if so, a panel switch per output (DC only, as the
+  board's other switches, driving an analogue switch, which is fine at that buffered node) or a
+  solder jumper.
+- **Pin 1 belongs to the chassis at the socket**, not to the board's ground: AES48, and the
+  pedal's "pin 1 problem". The XH 3-pin carries pin 1 as its own net, SHIELD, which reaches the
+  board's ground only through an unfitted footprint (0 Ω or 10 nF) for builds with no metal case.
+  The **ground lift** is a panel part: a toggle per XLR between pin 1 and a lug on the case, with
+  10 nF across it, wired at the socket.
+- **RF:** matched small capacitors from each pin to SHIELD at the connector, sized in phase 1
+  (matched, or they unbalance the legs).
+
+**The codec's load.** Both forms hang on the same output, after the mute: the unbalanced stage's
+input resistors and the followers' 100 kΩ bias resistors, together far above the codec's 1.2 kΩ
+minimum.
 
 ### Power
 
@@ -241,7 +304,7 @@ codec's 2 Vrms, set in phase 1.
 | 3.3 V AVDD | Pi 5 V → LC filter → low-noise LDO (TPS7A20 or LP5907 class) | Codec AVDD |
 | 3.3 V IOVDD | Pi 3.3 V | Codec IOVDD, MD straps, EEPROM, the switches' and plug detection's pull-ups, relay drivers' logic |
 | Analogue 5 V | Pi 5 V → load switch → ferrite and LC filter, optionally a capacitance multiplier (owner, 2026-11-11: no boost) | Buffers, preamps, FDAs, output stages |
-| Relay coils | Pi 5 V, on their own filter branch | Six relays: KA (two) and KB per input |
+| Relay coils | Pi 5 V, on their own filter branch | Eight relays: KA (two) and KB per input, K_M per output |
 | Mid-rail | The analogue 5 V halved, RC-filtered to well below 1 Hz and buffered | Bias for every stage |
 | +48 V | Its own boost, above | Phantom only |
 
@@ -255,8 +318,9 @@ the phantom boost are all enabled from 3.3 V, and the switch and detection logic
 3.3 V, so in that state every relay drops out, phantom goes off, and nothing back-powers the
 codec's IOVDD, the EEPROM or the Pi's pins.
 
-**Budget from the Pi's 5 V**, worst case: phantom ≈ 250 mA, six relay coils ≈ 180 mA (a
-¼″ plug in both inputs with Line on), op-amps ≈ 50 mA, codec ≈ 30 mA: about 500 mA. Latching
+**Budget from the Pi's 5 V**, worst case: phantom ≈ 250 mA, eight relay coils ≈ 240 mA (a
+¼″ plug in both inputs with Line on, and both outputs unmuted), op-amps ≈ 60 mA, codec ≈ 30 mA:
+about 580 mA. Latching
 relays would take the coils' share to nearly nothing, at the cost of a driver that remembers
 state; phase 1 weighs it.
 
@@ -272,7 +336,7 @@ state; phase 1 weighs it.
 | 5, 6 | In: input 1 and 2, a ¼″ plug present (the insert switch, which also drives KA) |
 | 12, 13 | In: input 1 and 2, the Line switch (which also drives KB). A solder jumper turns each into an output that drives KB instead |
 | 22, 23 | In: input 1 and 2, +48 V present on the feed (through a divider) |
-| 24 | Output mute (pulled to muted) |
+| 24 | Out: mute, both outputs in both forms (pulled to muted) |
 | 25 | Codec GPO (clock-error interrupt) |
 
 Left free on purpose: GPIO 2/3 (I2C1, needed if the TAC5212 is fitted), 14/15 (the UART that
@@ -292,6 +356,8 @@ device-tree work now.
   [codec bring-up](https://github.com/pedal-science/pedal.project/blob/main/docs/codec-bringup-2c.md)
   measures the WM8960 now, with the same `scripts/codec-noise.py`.
 - The phantom supply's ripple and noise at the input with phantom on and off.
+- The balanced outputs' balance (output impedance matching, as IEC 60268-3 tests a receiver) and
+  their survival of phantom power switched on, left on and hot-plugged.
 - Round-trip latency with each filter set, and Pi-master against codec-master clocking.
 - That nothing from the Pi's 5 V reaches the audio.
 

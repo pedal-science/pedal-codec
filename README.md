@@ -7,7 +7,8 @@ ADC, 120 dB DAC):
   **Line** on the XLR. The plug chooses the half; a panel switch chooses Line
 - optional **+48 V phantom power** per input, from a panel switch with an LED, wired only to the
   XLR pins so it can never reach a ¼″ plug
-- two **line outputs**
+- two **line outputs**, each both unbalanced (for a ¼″ jack) and balanced (for a male XLR), live
+  at once, the balanced form protected against phantom power
 - JST XH connectors for everything (XLR and ¼″ halves separately, outputs, the panel's switches),
   so the board can sit inside a case with the jacks on the panel
 - a full-size HAT+, powered from the Pi's 5 V
