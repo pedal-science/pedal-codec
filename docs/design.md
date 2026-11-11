@@ -111,14 +111,31 @@ carries the oscillator's footprint, so the two can be measured.
 **Other pins.** DREG (1.55 V internal regulator) and VREF each need their own capacitor (VREF
 ≥ 1 µF, no load). Supplies may come up in either order, ramping slower than 0.1 V/µs.
 
-**Linux.** TI publishes a driver for the family (TAC5X1X-LINUX-DRIVER). An upstream ASoC driver,
-`tac5x1x`, has been posted to the kernel lists several times, most recently as a reworked series
-in March 2026; whether it has been merged is checked in phase 5. Until it is, rtpi builds TI's
-driver as a module for the pedal's kernels. This is the one risk the TAC5242 didn't have: it needed
-no driver at all.
+**Linux** (checked 2026-11-11, phase 1). There is no TAC5212 driver in mainline (7.4-rc2) or in
+Raspberry Pi's kernel trees (`rpi-7.3.y`, `rpi-7.4.y`). Mainline's `pcm6240` driver covers its
+ADC-only and DAC-only siblings (TAA5212, TAD5212) but not the codec. TI posted `tac5x1x` as a
+v1 series of eight patches on 2026-03-12: an MFD core, a pinctrl driver for the four GPIO pins and
+the ASoC codec driver, covering the TAC5212 among eleven parts. Mark Brown asked for changes to the
+codec driver (analogue input routing from the device tree rather than mixer controls, a duplicate
+control registration, an empty resume function), Krzysztof Kozlowski said the bindings repeat
+problems raised before, and no later revision or "applied" notice was found. TI also publishes
+TAC5X1X-LINUX-DRIVER outside the kernel. vip runs Ubuntu's 7.0 raspi-realtime kernel, rebuilt by
+rtpi. Three routes, in order:
 
-**Availability.** LCSC lists the TAC5212IRGER as C44853694; stock wasn't confirmed on 2026-11-11.
-Check it in phase 1, and again before ordering.
+1. **TI's series as an out-of-tree module** built by rtpi for its kernel: the codec, the MFD core
+   and pinctrl, from the posted patches or TI's package. Most functionality, most work.
+2. **Configure the codec from userspace.** The codec is only registers: a small tool writes them
+   over `/dev/i2c-1` at start-up, as pedald already configures the pedal, and the device tree
+   describes the codec to ALSA as one with no controls, as the TAC5242 plan would have. No kernel
+   work at all; ALSA has no mixer controls, so the pedal's software owns volume and the filters.
+3. Upstream, if a later revision is merged and reaches the kernels the pedal uses.
+
+Route 2 removes the driver risk outright, so v1 is brought up that way (phase 5) and route 1 follows
+if the mixer controls are wanted. The evaluation module (phase 4) lets both be tried before the
+boards arrive.
+
+**Availability.** LCSC C44853694: 774 in stock at $7.46 each on 2026-11-11. Check again before
+ordering.
 
 ## Size
 
@@ -146,9 +163,13 @@ XLR half needs three pins of its own, and keeping the ¼″ half on separate pin
 | OUT 1 BAL, OUT 2 BAL | JST XH 3-pin (B3B-XH-A) | 1 SHIELD (XLR pin 1), 2 hot, 3 cold: balanced, for a male XLR panel socket (the pedal's choice is the Neutrik NC3MD-LX) |
 | PANEL | One connector, part chosen in phase 2 (about 12 pins) | Ground, both inputs' Line switches, both phantom switches, both phantom LEDs, both balanced outputs' pad switches |
 
-**The combo jack** needs a switching contact on its ¼″ side, **isolated** from the tip. A contact
-normalled to the tip would put the detection's pull-up on the 1 MΩ instrument node. Neutrik's NCJ6
-family has switching versions; phase 1 picks the part and checks the contact. A combo jack takes
+**The combo jack** needs a switching contact that changes when a ¼″ plug goes in. The candidate is
+Neutrik's NCJ9FI-S (XLR and a switching stereo jack, three switching contacts). Neutrik's page
+doesn't say whether they are isolated or normalled to the tip and ring; its circuit drawing settles
+it in phase 2. Either way works: an isolated contact is the detection; if they are normals,
+detection uses the **ring's** normal, not the tip's. The ring isn't on the 1 MΩ node (Instrument
+uses the tip alone), any plug lifts the ring contact off its normal, a TS plug included, and with no
+plug the ¼″ half isn't in the signal path, so the pull-up's DC on the ring goes nowhere. A combo jack takes
 only one plug at a time, so the board never has to choose between two.
 
 **v1 also carries the panel's switches on the board**: small slide switches wired in parallel with
@@ -166,9 +187,9 @@ Pi header ─ 5 V ─┬─ load switch (EN from 3.3 V) ─ ferrite + LC ─ ana
           I2S (GPIO 18–21) ─ BCLK, FSYNC, DIN, DOUT;  I2C1 (GPIO 2, 3) ─ SCL, SDA
 
 ¼″ tip ────── 1 MΩ ─ JFET buffer ─────────────┐ KA          ┐
-XLR 2/3 ─ 47 µF ×2 ─ mic preamp, ≈ 20 dB ─────┘ (plug)  ─ L ├ KB (Line switch) ─ FDA ─ 10 µF ─ IN1P/M
+XLR 2/3 ─ 23.5 µF ×2 ─ mic preamp, ≈ 20 dB ───┘ (plug)  ─ L ├ KB (Line switch) ─ FDA ─ 10 µF ─ IN1P/M
 ¼″ tip/ring ─────────────────────────────────┐ KA          │
-XLR 2/3 (after the 47 µF) ───────────────────┘ (plug) ─ Line ┘
+XLR 2/3 (after the 23.5 µF) ─────────────────┘ (plug) ─ Line ┘
 
 OUT1P/M ─ mute ─┬─ differential-to-single-ended stage ─ 10 µF ─ 100 Ω ─ OUT 1, unbalanced
                 └─ followers ×2 ─ phantom-proof coupling ─ OUT 1 BAL, balanced ("Output" below)
@@ -182,8 +203,8 @@ Each input has two signal paths, one per half of the jack, and two choices:
 |---|---|---|---|
 | ¼″ | off | **Instrument** | Tip, 1 MΩ, JFET buffer |
 | ¼″ | on | **Line** | Tip and ring, balanced or (TS lead, ring grounded) unbalanced |
-| XLR (or nothing) | off | **Mic** | Phantom feed, 47 µF ×2, mic preamp |
-| XLR | on | **Line** | Hot and cold after the 47 µF, e.g. a balanced line output or an active DI |
+| XLR (or nothing) | off | **Mic** | Phantom feed, 23.5 µF ×2, mic preamp |
+| XLR | on | **Line** | Hot and cold after the 23.5 µF, e.g. a balanced line output or an active DI |
 
 - **KA follows the plug.** The ¼″ insert switch drives it, through a transistor; the Pi reads the
   same signal. It selects both the low-level stage (the instrument buffer or the mic preamp) and
@@ -236,13 +257,23 @@ output). Phase 1 picks by simulation and LCSC stock.
 
 ### Phantom power
 
-- One boost converter from 5 V to about 52 V with a ≥ 60 V switch, post-filtered (LC, then a
-  capacitance multiplier or a high-voltage LDO) to 48 V ± 4 V, switching far above audio. It runs
-  only while either input's phantom switch is on.
-- Per input: a high-side switch, a slow ramp to keep the switch-on thump small, 6.81 kΩ 0.1%
-  matched pair, 47 µF 63 V coupling capacitors on hot and cold, and the usual protection against a
-  shorted or hot-plugged XLR (series resistors and clamps to the rails), in front of both the Mic
-  preamp and the XLR's Line path.
+- **The supply** (phase 1): a TPS61170 boost (1.2 MHz, 38 V switch) to about 27 V, with a
+  diode-capacitor doubler on its switch node to about 54 V, regulated from the doubled output. A
+  single boost stage can't step 5 V to 52 V (a 90 % duty cycle), and the boosts with a 60 V switch
+  are scarce at LCSC (the LT8362 had 33). Then an LC filter and a capacitance multiplier (an
+  MMBT5551 with an RC-filtered base) to 48 V ± 4 V. It runs only while either input's phantom
+  switch is on.
+- **Per input:** a PNP high-side switch (MMBT5401, 150 V) driven by a 2N7002, with an RC on its base
+  that ramps the feed over about 1.5 s; the 6.81 kΩ feed as two 3.4 kΩ 0.1 % 1206 resistors in
+  series per leg, since a shorted pin puts 0.34 W in each leg, more than one 1206 takes; and 2 × 47 µF
+  63 V electrolytics back to back per leg (23.5 µF, bipolar), since JLCPCB's library has no bipolar
+  63 V part. Then 10 Ω, Schottky clamps (SS14) to the analogue 5 V and from ground, 22 Ω into the
+  preamp, and 1.2 kΩ to the mid-rail. That protection sits in front of both the Mic preamp and
+  the XLR's Line path.
+- **The thump.** With every part matched, switching phantom on is silent. With cold's capacitors
+  20 % larger and its feed resistor 0.1 % higher, a 300 ms ramp thumps at −6 dBFS and a 1.5 s ramp
+  at −20 dBFS (`sim/results/README.md`). So the ramp is 1.5 s, and the Pi, which reads each input's
+  phantom feed (GPIO 22, 23), mutes that channel in the codec for 3 s whenever it changes.
 - **Only the panel turns it on.** The phantom switch's DC line, ANDed with the 3.3 V rail (so the
   Pi's standby turns it off), enables that input's high-side switch. No GPIO is in that path.
 - **It only reaches the XLR pins.** The ¼″ contacts have no connection to the feed, so a guitar or
@@ -262,7 +293,7 @@ connectors, not four outputs; the two forms of one output always carry the same 
 ```
 OUT1P/M ─ 10 µF ×2 ─ mute (K_M) ─┬─ diff-to-SE stage ─ 10 µF ─ 100 Ω ─ OUT 1 (100 k bleed)
                                   │
-                                  └─ pad (−20 dB, panel) ─ follower ×2 ─ 100 Ω ─ 47 µF 63 V ─ 10 Ω ─ OUT 1 BAL pin 2
+                                  └─ pad (−20 dB, panel) ─ ×1.13 ×2 ─ 100 Ω ─ 23.5 µF 63 V ─ 10 Ω ─ OUT 1 BAL pin 2
                                                                          (P → hot, M → cold)   clamps ┘ (100 k bleed) pin 3
 ```
 
@@ -274,8 +305,9 @@ the system runs, the codec's own soft-ramped DAC mute and volume do the everyday
 is for the times the codec isn't configured yet, or isn't powered.
 
 **Unbalanced:** a differential-to-single-ended op-amp stage, then 10 µF, 100 Ω and a 100 kΩ bleed to
-the connector. On 5 V the stage swings about 1.7 Vrms, so full scale at the output is about +6 dBu
-(1.5–1.7 Vrms): a gain of 0.75–0.85 from the codec's 2 Vrms, set in phase 1.
+the connector. Its gain is 7.5 kΩ over 9.09 kΩ plus the mute's 1 kΩ, 0.743, so codec full scale
+gives **1.45 Vrms (+5.4 dBu)** at the ¼″ output, with the op-amp swinging 0.42–4.56 V on the 5 V
+rail.
 
 **Balanced:** the pedal worked this out for its own XLR outputs on 2026-10-14, in
 [balanced-outputs.md](https://github.com/pedal-science/pedal.project/blob/main/docs/balanced-outputs.md)
@@ -285,39 +317,43 @@ This board takes that design, with two differences.
 
 - **The codec already drives both legs.** The pedal's WM8960 has single-ended outputs, so its
   driver makes cold with an inverter. The TAC5212's output is differential: hot follows OUTxP and
-  cold follows OUTxM, through two identical unity followers on the 5 V rail. Symmetric drive comes
-  from the codec, and the two legs are the same circuit.
-- **5 V, not 9 V.** Each follower swings about 1.7 Vrms, so the pair could give +12.8 dBu
-  differentially; at unity gain, codec full scale is 2 Vrms between pins 2 and 3, **+8.2 dBu**,
-  with the op-amps well inside their swing. More level (up to about +12 dBu) is a resistor's
-  change, decided in phase 1.
+  cold follows OUTxM, through two identical non-inverting stages on the 5 V rail. Symmetric drive
+  comes from the codec, and the two legs are the same circuit.
+- **5 V, not 9 V.** Each stage has a gain of 1.13 (1.3 kΩ over 10 kΩ), which makes up what the
+  mute's 1 kΩ loses against the loads on the codec's output, so codec full scale gives **1.98 Vrms
+  (+8.1 dBu)** between pins 2 and 3, each op-amp swinging 1.01–3.97 V. More level (up to about
+  +12 dBu) is a resistor's change.
 
 From the pedal's design, unchanged:
 
-- **Balance comes from matched legs**, not from symmetric signal: the same 100 Ω (1 %), the 47 µF
-  capacitors paired to 5 %, the same op-amp (a dual per output, one half per leg), the same 10 Ω
-  and bleed on each pin.
+- **Balance comes from matched legs**, not from symmetric signal: the same 100 Ω (1 %), the same
+  capacitors, the same op-amp (a dual per output, one half per leg), the same 10 Ω and bleed on
+  each pin. The capacitors are 2 × 47 µF 63 V back to back per leg, as on the inputs; electrolytics
+  are ±20 %, which unbalances the legs at 50 Hz, so v1 measures the balance and, if it needs it,
+  the pairs are matched by hand.
 - **Phantom power is survived, not merely tolerated.** A stage box may put +48 V on pins 2 and 3.
-  So: 47 µF 63 V bipolar coupling capacitors; 100 kΩ bleeds on the connector side; 10 Ω between
-  each capacitor and its pin, which took the pedal's simulated clamp current on a shorted, charged
-  pin from 69 A to 3.7 A; Schottky clamps from each driver-side node to the analogue 5 V and from
-  ground. Here the clamps return into the 5 V rail and its filter, so phase 1 re-runs the
-  simulation with this board's rail and its capacitance.
+  So: 63 V capacitors; 100 kΩ bleeds on the connector side; 10 Ω between each capacitor and its
+  pin, which took the pedal's simulated clamp current on a shorted, charged pin from 69 A to
+  3.7 A; Schottky clamps (SS14) from each driver-side node to the analogue 5 V and from ground. With
+  this board's rail (phase 1): phantom on puts 44.9 V on the pin, the driver side of the capacitor
+  stays between −0.63 and 1.62 V, the op-amp carries at most 13.4 mA, and the short puts 4.25 A
+  through the 10 Ω for a moment, inside the SS14's 25 A surge rating.
 - **A −20 dB pad, on a panel switch per output** (decided), at the followers' input so the output impedances, and the balance,
   never change. It is for mic inputs on stage boxes, many of which run out of headroom near
   +8.2 dBu at minimum gain. The codec's DAC volume could lower the level in software instead, but
   both forms share one codec output, so it would lower the ¼″ output with it; a pad lowers only
   the XLR. At full scale the pad takes the XLR from +8.2 dBu to −11.8 dBu.
-  - **The divider is always fitted** (as in the pedal: 9.1 kΩ over 1 kΩ per leg, 0.1 % so the two
-    legs match), and the switch chooses which point feeds the followers: the full signal, or the
+  - **The divider is always fitted**: 91 kΩ over 10 kΩ per leg, 0.1 % so the two legs match, ten
+    times the pedal's values so it loads the codec's output less (−20.2 dB simulated), and the switch chooses which point feeds the followers: the full signal, or the
     divider's tap.
   - **The panel switch carries DC only**, like the board's other switches. It drives a dual SPDT
     analogue switch on the board, one pole per leg. That node sits at the mid-rail, inside the
     5 V rails, and feeds a follower's high input impedance, so the analogue switch's on-resistance
     adds no measurable distortion there. Phase 1 picks the part and checks it in simulation.
   - The Pi reads each pad switch, as it reads the others (GPIO 16 and 26), but can't set it.
-  - The amount is one resistor, as in the pedal's design: 330 Ω in place of the 1 kΩ gives about
+  - The amount is one resistor, as in the pedal's design: 3.3 kΩ in place of the 10 kΩ gives about
     −29 dB, nearer a real microphone's level.
+  - The analogue switch is a TS5A23157 (dual SPDT, 10 Ω, 5 V).
 - **Pin 1 belongs to the chassis at the socket**, not to the board's ground: AES48, and the
   pedal's "pin 1 problem". The XH 3-pin carries pin 1 as its own net, SHIELD, which reaches the
   board's ground only through an unfitted footprint (0 Ω or 10 nF) for builds with no metal case.
@@ -334,11 +370,11 @@ minimum.
 
 | Rail | Source | Feeds |
 |---|---|---|
-| 3.3 V AVDD | Pi 5 V → LC filter → low-noise LDO (TPS7A20 or LP5907 class) | Codec AVDD |
-| 3.3 V IOVDD | Pi 3.3 V | Codec IOVDD, MD straps, EEPROM, the switches' and plug detection's pull-ups, relay drivers' logic |
-| Analogue 5 V | Pi 5 V → load switch → ferrite and LC filter, optionally a capacitance multiplier (owner, 2026-11-11: no boost) | Buffers, preamps, FDAs, output stages |
+| 3.3 V AVDD | Pi 5 V → LC filter → TPS7A2033 (10 µVrms) | Codec AVDD |
+| 3.3 V IOVDD | Pi 3.3 V | Codec IOVDD, EEPROM, the switches' and plug detection's pull-ups, relay drivers' logic |
+| Analogue 5 V | Pi 5 V → load switch (TPS22917) → 10 µH and 110 µF (owner, 2026-11-11: no boost) | Buffers, preamps, FDAs, output stages |
 | Relay coils | Pi 5 V, on their own filter branch | Eight relays: KA (two) and KB per input, K_M per output |
-| Mid-rail | The analogue 5 V halved, RC-filtered to well below 1 Hz and buffered | Bias for every stage |
+| Mid-rail | The analogue 5 V halved (10 kΩ, 10 kΩ), then two RC stages (100 µF; 10 kΩ and 100 µF: 0.32 Hz and 0.16 Hz), buffered by an OPA1656 | Bias for every stage |
 | +48 V | Its own boost, above | Phantom only |
 
 The Pi's 5 V moves with its load (4.75–5.1 V, with steps when the CPU or USB load changes), so the
@@ -379,10 +415,89 @@ Left free on purpose: 14/15 (the UART that carries the pedal's Pico link) and 7�
 ### Software
 
 The Pi needs a device-tree overlay: `simple-audio-card` with the Pi's I2S, and the codec on I2C1
-at 0x50 with the TAC5x1x driver (see "Linux" above), which gives ALSA its controls. The EEPROM names
+at 0x50. With route 2 (see "Linux" above), a start-up tool configures the codec's registers and
+ALSA sees a codec with no controls; with route 1, the TAC5x1x driver gives ALSA its controls. The EEPROM names
 the overlay (`pedalscience-codec`, following the HAT+ spec's maker-board form). Its source lives in
 `overlay/`. If the pedal adopts the board, rtpi builds it into the pedal's kernels, as it does
 device-tree work now.
+
+## Phase 1 values (2026-11-11)
+
+Settled in phase 1 ([plan.md](plan.md)): every part with its LCSC number and stock that day, the
+values the stages use, and what the simulation shows. The decks and their full results are in
+[`sim/`](../sim/): `python3 sim/sim.py` reruns them and rewrites
+[`sim/results/README.md`](../sim/results/README.md). The op-amps there are behavioural (each
+part's gain-bandwidth, voltage noise and output swing); the makers' models replace them when the
+schematic is reviewed.
+
+### Parts
+
+| Part | Use | LCSC | Stock | Each |
+|---|---|---|---|---|
+| TAC5212IRGER | Codec | C44853694 | 774 | $7.46 |
+| OPA2197IDR | Instrument buffers (one dual, both inputs) | C139363 | 5,174 | $0.83 |
+| OPA1612AIDR | Mic preamps (a dual per input) | C94590 | 21,246 | $1.35 |
+| OPA1637DGKR | The FDA (one per input) | C2860968 | 9,229 | $2.55 |
+| OPA1656IDR | Unbalanced outputs (one dual), balanced stages (a dual per output), mid-rail buffer | C1849431 | 3,803 | $1.51 |
+| TPS7A2033PDBVR | AVDD, 3.3 V, 10 µVrms | C2862740 | 114,268 | $0.21 |
+| TPS22917DBVR | Analogue 5 V load switch, enabled from 3.3 V | C2681320 | 2,017 | $0.45 |
+| FNR4030S100MT | 10 µH: the analogue 5 V filter, and the boost | C167879 | 128,247 | $0.05 |
+| TPS61170DRVR | Phantom boost | C15163 | 46,950 | $0.79 |
+| SS210 | Boost and doubler diodes (100 V) | C14996 (basic) | 1,021,840 | $0.03 |
+| SS14 | Clamps, inputs and balanced outputs | C2480 (basic) | 1,521,813 | $0.02 |
+| MMBT5551 | Capacitance multiplier | C2145 (basic) | 1,410,804 | $0.02 |
+| MMBT5401 | Phantom high-side switch, per input | C8326 (basic) | 715,341 | $0.02 |
+| 2N7002 | Relay and phantom drivers | C8545 (basic) | 6,118,004 | $0.02 |
+| RT1206BRD073K4L | Phantom feed, 3.4 kΩ 0.1 %, two in series per leg | C870711 | 1,252 | $0.05 |
+| RV63V47M6X8 | 47 µF 63 V, two back to back per leg (inputs and balanced outputs: 16) | C48971005 | 363,499 | $0.06 |
+| HFD4/5-SR | DPDT signal relay, 5 V, gold contacts (eight) | C64399 | 29,307 | $1.45 |
+| TS5A23157DGSR | Balanced pad's analogue switch (one per output) | C11133 | 6,924 | $0.48 |
+| CAT24C32WI-GT3 | HAT+ ID EEPROM | C81193 | 7,757 | $0.39 |
+| HSO321S 12.288 MHz | Oscillator for codec-master, footprint only on v1 | C160458 | 1,372 | $0.75 |
+| B2B-XH-A / B3B-XH-A / B4B-XH-A | Outputs / XLR and balanced outputs / ¼″ | C158012 / C144394 / C144395 | 577,754 / 130,009 / 537,163 | $0.03–0.05 |
+| 2.54-2*20 | 40-pin header socket | C2977589 | 37,783 | $0.32 |
+
+None of the op-amps is a JLCPCB "basic" part, so each adds an assembly feeder fee; the passives
+are chosen from the basic library in phase 2. Panel parts (combo jacks, XLR sockets, switches,
+LEDs) are bought separately and wired to the board's connectors.
+
+### Values
+
+| Stage | Values | Gives |
+|---|---|---|
+| FDA | 4.99 kΩ feedback with 220 pF each side; OPA1637, output common mode at the mid-rail | −3 dB at 137–139 kHz in every mode |
+| Instrument | 100 nF film into 1 MΩ to the mid-rail, 1 kΩ, OPA2197 follower; FDA input 3.83 kΩ | Gain +2.1 dB, full scale at +6.1 dBu (4.4 Vpp), −3 dB at 3.8 Hz |
+| Line | 10 µF and 10 kΩ per leg into the FDA | Gain −6.2 dB, full scale at +14.5 dBu, 10 kΩ per leg |
+| Mic | 23.5 µF, 10 Ω, clamps, 22 Ω, 1.2 kΩ bias per leg; OPA1612 pair with 249 Ω feedback and 49.9 Ω gain resistor (×10.98); FDA input 4.99 kΩ | Gain +19.9 dB, full scale at −11.7 dBu, about 2 kΩ input, −3 dB at 6.6 Hz |
+| Codec input | 47 Ω per leg, 2.2 nF across, 10 µF per leg | |
+| Unbalanced output | 1 kΩ mute resistor, 9.09 kΩ and 7.5 kΩ around an OPA1656, 10 µF, 100 Ω, 100 kΩ bleed | 0.743, full scale +5.4 dBu |
+| Balanced output | 1 kΩ mute resistor, pad 91 kΩ / 10 kΩ, OPA1656 ×1.13 (1.3 kΩ / 10 kΩ) per leg, 100 Ω, 2 × 47 µF, 10 Ω, 100 kΩ bleed | Full scale +8.1 dBu, −11.9 dBu padded |
+
+### What the simulation shows
+
+Noise is over 20 Hz–20 kHz, unweighted, referred to the source (a 10 kΩ pickup for Instrument,
+100 Ω per leg for Line, a 150 Ω microphone for Mic), with the codec's own floor added.
+
+| Mode | Full scale | Noise | Dynamic range |
+|---|---|---|---|
+| Instrument | +6.1 dBu | −106.6 dBu | 112.7 dB |
+| Line | +14.5 dBu | −101.3 dBu | 115.8 dB |
+| Mic | −11.7 dBu | −123.1 dBu | 111.5 dB |
+
+- **Mic noise.** −123.1 dBu, against −130.9 dBu for the 150 Ω source alone over the same band.
+  What the board adds is the series protection resistors, the OPA1612s, the 49.9 Ω gain resistor
+  and the FDA, in about equal shares; A-weighting would take 2–3 dB off. Halving the preamp's
+  resistances and the series resistor gained 0.8 dB, so what is left is the price of protecting the
+  input against phantom power.
+- **Swing.** At codec full scale every op-amp has at least 0.17 V before its rail; the instrument
+  buffer is the closest, so in Instrument mode the codec clips first, as intended. The OPA1612's
+  inputs stay inside the 2.0–2.95 V its common-mode range allows on 5 V.
+- **The Pi's 5 V.** Ripple reaches the codec at −110 dB or less at 100 Hz in Instrument mode, and
+  far below that in Line and Mic, which are differential; −112 dB at the unbalanced outputs. That
+  is the two-stage mid-rail filter's work: with one stage, Instrument and the unbalanced output
+  were at −54 dB and −56 dB.
+- **Mute:** −79 dB at both forms of each output.
+- **Phantom on an input**, and **on a balanced output**: in "Phantom power" and "Output" above.
 
 ## What the board must prove
 

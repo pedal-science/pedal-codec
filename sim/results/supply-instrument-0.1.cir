@@ -1,0 +1,65 @@
+* supply-instrument-0.1
+.subckt OPA inp inn out vcc vee PARAMS: gbw=10e6 ren=500
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bout out 0 V = max(min(v(x), v(vcc)-0.1), v(vee)+0.1)
+.ends OPA
+.subckt FDA inp inn outp outm vocm vcc vee PARAMS: gbw=9e6 ren=800
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bp outp 0 V = max(min(v(vocm)+v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+Bm outm 0 V = max(min(v(vocm)-v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+.ends FDA
+.model DSCH D(Is=31.7u Rs=.051 N=1.373 Cjo=190p M=.3 Eg=.69 Xti=2 BV=40 IBV=1m)
+.model SWM SW(Ron=0.1 Roff=1G Vt=0.5 Vh=0)
+VPI pi5 0 DC 5.0 AC 1
+Rls pi5 n1 0.08
+Lf n1 n2 10u
+Rdcr n2 a5 0.13
+Ca5 a5 c5 100u
+Resr c5 0 0.02
+Cb5 a5 0 10u
+Iload a5 0 DC 0.06
+Rm1 a5 mr 10k
+Rm2 mr 0 10k
+Cmr mr 0 100u
+Rm3 mr mr2 10k
+Cmr2 mr2 0 100u
+XMR mr2 vm vm a5 0 OPA gbw=5.3e+07 ren=507.4
+Cvm vm 0 10u
+XF sp sn fp fm vm a5 0 FDA gbw=9e+06 ren=825.9
+Rf1 fm sp 4990
+Cf1 fm sp 2.2e-10
+Rf2 fp sn 4994.99
+Cf2 fp sn 2.2e-10
+Rk1 fp k1 47
+Rk2 fm k2 47
+Ck k1 k2 2.2n
+Cc1 k1 cp 10u
+Cc2 k2 cm 10u
+Rc1 cp vcod 5k
+Rc2 cm vcod 5k
+Vcod vcod 0 DC 1.375
+Vs src 0 DC 0 AC 0
+Rpu src tip 10k
+Cin tip bin 100n
+Rbias bin vm 1meg
+Rpi bin bin2 1k
+XB bin2 bo bo a5 0 OPA gbw=1e+07 ren=1825
+Rg1 bo sp 3830
+Rg2 vm sn 3833.83
+.nodeset v(xmr.x)=2.475 v(xf.x)=0 v(xb.x)=2.475 v(vm)=2.475 v(a5)=4.95
+.control
+ac dec 20 10 100k
+let g = db(mag(v(cp)-v(cm))+1e-12)
+meas ac p100 find g at=100
+meas ac p1k find g at=1k
+meas ac p10k find g at=10k
+.endc
+.end

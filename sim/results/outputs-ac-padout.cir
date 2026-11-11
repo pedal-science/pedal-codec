@@ -1,0 +1,89 @@
+* outputs-ac-padout
+.subckt OPA inp inn out vcc vee PARAMS: gbw=10e6 ren=500
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bout out 0 V = max(min(v(x), v(vcc)-0.1), v(vee)+0.1)
+.ends OPA
+.subckt FDA inp inn outp outm vocm vcc vee PARAMS: gbw=9e6 ren=800
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bp outp 0 V = max(min(v(vocm)+v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+Bm outm 0 V = max(min(v(vocm)-v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+.ends FDA
+.model DSCH D(Is=31.7u Rs=.051 N=1.373 Cjo=190p M=.3 Eg=.69 Xti=2 BV=40 IBV=1m)
+.model SWM SW(Ron=0.1 Roff=1G Vt=0.5 Vh=0)
+VPI pi5 0 DC 5.0 AC 0
+Rls pi5 n1 0.08
+Lf n1 n2 10u
+Rdcr n2 a5 0.13
+Ca5 a5 c5 100u
+Resr c5 0 0.02
+Cb5 a5 0 10u
+Iload a5 0 DC 0.06
+Rm1 a5 mr 10k
+Rm2 mr 0 10k
+Cmr mr 0 100u
+Rm3 mr mr2 10k
+Cmr2 mr2 0 100u
+XMR mr2 vm vm a5 0 OPA gbw=5.3e+07 ren=507.4
+Cvm vm 0 10u
+Vo op 0 DC 1.375 AC 1
+Eo om 0 vcod2 op 1
+Vcod2 vcod2 0 DC 2.75
+Co1 op x1 10u
+Co2 om x2 10u
+Rmu1 x1 xp 1000
+Rmu2 x2 xm 1000
+
+Ru1 xp ua 9090
+Ru2 ua vm 7500
+Ru3 xm ub 9090
+Ru4 uo ub 7500
+XU ua ub uo a5 0 OPA gbw=5.3e+07 ren=507.4
+Cuo uo uo2 10u
+Ruo uo2 jack 100
+Rjb jack 0 100k
+Rload jack 0 10k
+Rbp xp vm 100k
+Rbm xm vm 100k
+Rpa1 xp tpp 91000
+Rpa2 tpp vm 10000
+Rpb1 xm tpm 91000
+Rpb2 tpm vm 10000
+XH xp hn ho a5 0 OPA gbw=5.3e+07 ren=507.4
+XC xm cn co a5 0 OPA gbw=5.3e+07 ren=507.4
+Rhf ho hn 1300
+Rhg hn vm 10000
+Rcf co cn 1300
+Rcg cn vm 10000
+Rh ho h 100
+Rc co c 100
+Dhh h a5 DSCH
+Dhl 0 h DSCH
+Dch c a5 DSCH
+Dcl 0 c DSCH
+Ch h hc 2.35e-05
+Cc c cc 2.35e-05
+Rh2 hc pin2 10
+Rc2 cc pin3 10
+Rbl2 pin2 0 100k
+Rbl3 pin3 0 100k
+Rrcv pin2 pin3 20k
+.nodeset v(xmr.x)=2.475 v(xu.x)=2.475 v(xh.x)=2.475 v(xc.x)=2.475 v(vm)=2.475 v(a5)=4.95
+.control
+ac dec 40 1 1meg
+let gu = db(mag(v(jack))+1e-12)
+let gb = db(mag(v(pin2)-v(pin3))+1e-12)
+meas ac gu1k find gu at=1k
+meas ac gb1k find gb at=1k
+let gum = gu - gu1k
+meas ac fulo when gum=-3 cross=1
+meas ac fuhi when gum=-3 cross=last
+.endc
+.end

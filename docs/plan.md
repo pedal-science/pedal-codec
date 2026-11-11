@@ -5,19 +5,18 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. Phase 1, starting with the codec's Linux driver. The owner's decisions are in
-   [design.md](design.md) ("Decided"); no design question is open.
+1. The owner reviews phase 1: [design.md](design.md), "Phase 1 values", and
+   [sim/results/README.md](../sim/results/README.md).
+2. Then phase 2, the schematic, starting with Neutrik's circuit drawing for the NCJ9FI-S's
+   switching contacts.
 
-Last changed 2026-11-11: the balanced outputs' −20 dB pad is fitted, on a panel switch per output
-that drives an analogue switch on the board. Before that the same day: the codec is now the TAC5212,
-the I2C-controlled twin, so the Pi sets it up in software (ultra-low-latency filters, digital
-volume); the strap pins are gone, and the risk moves to its Linux driver. Before that the same day:
-balanced outputs added, an XH 3-pin per output for a male XLR, carrying the same audio as the
-unbalanced 2-pin, after the pedal's own XLR output design. Before that the same day: the inputs
-reworked around combo jacks with their XLR and ¼″ halves wired separately. The plug chooses the
-path, a panel switch per input chooses Line, and phantom power comes only from a panel switch and
-reaches only the XLR pins. Before that the same day: a Mic mode, full-size HAT+, and the filtered 5
-V rail.
+Last changed 2026-11-11: phase 1 done. The TAC5212 has no Linux driver anywhere yet (TI's v1 series
+of March 2026 has review changes outstanding), so v1 is brought up by configuring the codec from
+userspace over I2C. Every part is chosen with its LCSC number and stock, the phantom supply is a
+TPS61170 with a voltage doubler, the phantom capacitors are 47 µF pairs back to back (JLCPCB has no
+bipolar 63 V part), and ngspice shows each mode's gain, noise and headroom, the supply rejection,
+the phantom thump (hence a 1.5 s ramp and a software mute) and both phantom faults. Before that the
+same day: the decisions in design.md, "Decided".
 
 ## Tools
 
@@ -56,6 +55,9 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   - the balanced outputs' phantom survival, starting from the pedal's
     `../pedal.project/schematic/balanced-output-sim.py` with this board's 5 V rail and its
     capacitance under the clamps: phantom switched on, a charged pin shorted, a hot plug.
+- **Done (2026-11-11), waiting for the owner's review.** The driver: none anywhere yet, so v1
+  configures the codec from userspace (design.md, "Linux"). The parts, values and results:
+  design.md, "Phase 1 values"; the decks: `sim/`.
 - **Done when** `docs/design.md` has every value with its reason, no "Open" left that blocks the
   schematic, and the SPICE decks and their results are committed under `sim/`.
 
@@ -107,10 +109,10 @@ On piv, the bench device, not vip (vip's WM8960 stays wired as it is).
   phantom off and on, no part warm.
 - EEPROM: written with Raspberry Pi's `eepmake` and `eepflash.sh` (WP held low at its test
   point), naming the overlay.
-- The codec's driver (upstream `tac5x1x` if merged, TI's otherwise) built for piv's kernel, the
-  codec answering at 0x50 on I2C1.
-- The overlay in `overlay/`, then playback, capture, and an analogue loopback at 48 kHz, with the
-  ALSA controls the driver exposes.
+- The codec answering at 0x50 on I2C1, configured by a start-up tool that writes its registers
+  over `/dev/i2c-1` (design.md, "Linux", route 2). The driver (route 1) follows if ALSA's mixer
+  controls are wanted.
+- The overlay in `overlay/`, then playback, capture, and an analogue loopback at 48 kHz.
 - **Done when** audio passes from input to output through the Pi, and the board identifies
   itself through `/proc/device-tree/hat/`.
 

@@ -1,0 +1,84 @@
+* supply-mic-0.1
+.subckt OPA inp inn out vcc vee PARAMS: gbw=10e6 ren=500
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bout out 0 V = max(min(v(x), v(vcc)-0.1), v(vee)+0.1)
+.ends OPA
+.subckt FDA inp inn outp outm vocm vcc vee PARAMS: gbw=9e6 ren=800
+Ren inp inp2 {ren}
+Rin inp2 inn 1T
+Eg g0 0 inp2 inn 1e6
+Rp g0 x 1
+Cp x 0 {1e6/(2*3.14159265*gbw)}
+Bp outp 0 V = max(min(v(vocm)+v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+Bm outm 0 V = max(min(v(vocm)-v(x)/2, v(vcc)-0.1), v(vee)+0.1)
+.ends FDA
+.model DSCH D(Is=31.7u Rs=.051 N=1.373 Cjo=190p M=.3 Eg=.69 Xti=2 BV=40 IBV=1m)
+.model SWM SW(Ron=0.1 Roff=1G Vt=0.5 Vh=0)
+VPI pi5 0 DC 5.0 AC 1
+Rls pi5 n1 0.08
+Lf n1 n2 10u
+Rdcr n2 a5 0.13
+Ca5 a5 c5 100u
+Resr c5 0 0.02
+Cb5 a5 0 10u
+Iload a5 0 DC 0.06
+Rm1 a5 mr 10k
+Rm2 mr 0 10k
+Cmr mr 0 100u
+Rm3 mr mr2 10k
+Cmr2 mr2 0 100u
+XMR mr2 vm vm a5 0 OPA gbw=5.3e+07 ren=507.4
+Cvm vm 0 10u
+XF sp sn fp fm vm a5 0 FDA gbw=9e+06 ren=825.9
+Rf1 fm sp 4990
+Cf1 fm sp 2.2e-10
+Rf2 fp sn 4994.99
+Cf2 fp sn 2.2e-10
+Rk1 fp k1 47
+Rk2 fm k2 47
+Ck k1 k2 2.2n
+Cc1 k1 cp 10u
+Cc2 k2 cm 10u
+Rc1 cp vcod 5k
+Rc2 cm vcod 5k
+Vcod vcod 0 DC 1.375
+Vs hs hc DC 0 AC 0
+Rsh hs hot 75
+Rsc hc cold 75
+Vph vph 0 DC 48
+Rph1 hot vph 6810
+Rph2 cold vph 6810
+Cm1 hot q1 2.35e-05
+Resr1 q1 m1 0.3
+Cm2 cold q2 2.35e-05
+Resr2 q2 m2 0.3
+Rs1 m1 c1 10
+Rs2 m2 c2 10
+Dh1 c1 a5 DSCH
+Dl1 0 c1 DSCH
+Dh2 c2 a5 DSCH
+Dl2 0 c2 DSCH
+Ri1 c1 mi1 22
+Ri2 c2 mi2 22
+Rb1 mi1 vm 1200
+Rb2 mi2 vm 1200
+XP1 mi1 f1 p1 a5 0 OPA gbw=4e+07 ren=73
+XP2 mi2 f2 p2 a5 0 OPA gbw=4e+07 ren=73
+Rfa p1 f1 249
+Rgp f1 f2 49.9
+Rfb p2 f2 249
+Rg1 p1 sp 4990
+Rg2 p2 sn 4994.99
+.nodeset v(xmr.x)=2.475 v(xf.x)=0 v(xp1.x)=2.475 v(xp2.x)=2.475 v(vm)=2.475 v(a5)=4.95
+.control
+ac dec 20 10 100k
+let g = db(mag(v(cp)-v(cm))+1e-12)
+meas ac p100 find g at=100
+meas ac p1k find g at=1k
+meas ac p10k find g at=10k
+.endc
+.end
