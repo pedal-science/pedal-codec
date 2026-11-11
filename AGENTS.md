@@ -1,9 +1,9 @@
 # pedal-codec
 
 A Raspberry Pi audio board, in the spirit of Raspberry Pi's Codec Zero, built around Texas
-Instruments' **TAC5242**: two inputs switchable between Instrument, Line and Mic, each with
-optional +48 V phantom power, and two line outputs, all on JST XH connectors (3-pin inputs, 2-pin
-outputs), on a full-size HAT+. Power, audio and control come
+Instruments' **TAC5242**: two inputs for combo XLR/¼″ jacks (Instrument or Line on the ¼″, Mic
+or Line on the XLR, chosen by the plug and a panel switch), each with optional +48 V phantom power
+from a panel switch, and two line outputs, all on JST XH connectors, on a full-size HAT+. Power, audio and control come
 through the Pi's 40-pin header. Started 2026-11-11 as an aside from the pedal; it may later replace
 the pedal's SparkFun WM8960 board, which is a separate decision.
 
@@ -34,9 +34,9 @@ repository owns what.
   the owner places the order and pays.
 - **Datasheets are linked, not committed.** They are their makers' work. Keep local copies outside
   the repository or in the git-ignored `datasheets/` directory.
-- **Phantom power is a safety feature, not a convenience.** +48 V must never reach the
-  instrument path: the interlock is in hardware (`docs/design.md`, "Phantom power"), not only in
-  software.
+- **Phantom power is under the player's hand only.** It is wired to the XLR pins and nothing else,
+  it is switched on by a panel switch and nothing else, and no GPIO, script or default may enable
+  it (`docs/design.md`, "Phantom power"). Software may read it, never set it.
 - **The HAT+ rules apply** (Raspberry Pi's HAT+ specification): an ID EEPROM on ID_SD/ID_SC with
   3.9 kΩ pull-ups, and nothing powered from 5 V may back-power the 3.3 V side while the Pi is in
   standby (5 V on, 3.3 V off).

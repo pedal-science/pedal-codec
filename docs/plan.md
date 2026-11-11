@@ -5,12 +5,13 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. Phase 1. The owner's four answers are in [design.md](design.md) ("Decided"); the one question
+1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"); the one question
    left, whether the board also takes the TAC5212, is phase 1's first step.
 
-Last changed 2026-11-11: the owner decided XH 3-pin inputs, a Mic mode, full-size HAT+ and the
-filtered 5 V rail; the design now has the three-mode input, the fixed ~20 dB mic gain and its
-reasoning, and the 5 V power scheme.
+Last changed 2026-11-11: the inputs reworked around combo jacks with their XLR and ¼″ halves
+wired separately. The plug chooses the path, a panel switch per input chooses Line, and phantom
+power comes only from a panel switch and reaches only the XLR pins. Before that the same day: a
+Mic mode, full-size HAT+, and the filtered 5 V rail.
 
 ## Tools
 
@@ -32,7 +33,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 - Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB
   search): AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its
   post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amp, the relays
-  and their drivers, the EEPROM, the oscillator. Prefer JLCPCB "basic" parts for passives.
+  (latching or not) and their drivers, the EEPROM, the oscillator, and the combo jack: one whose
+  ¼″ switching contact is isolated from the tip, and the panel's switches and LEDs. Prefer JLCPCB "basic" parts for passives.
 - Simulate in ngspice (the `spice` skill), with models from the makers where they exist:
   - each input mode (Instrument, Line, Mic): gain, headroom against the 5 V rail and the codec's
     +8.2 dBu, noise referred to the input, frequency response with the 5 kΩ input and the coupling
@@ -49,7 +51,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 ## Phase 2: schematic
 
 - A KiCad 10 project in `hardware/`, hierarchical: header and EEPROM, power, phantom supply, codec
-  and straps, input channel (one sheet used twice), outputs, control.
+  and straps, input channel (one sheet used twice: both halves of the jack, KA and KB, the panel
+  logic), outputs, the panel connector and v1's on-board switches.
 - `LCSC` and `MPN` fields on every symbol from the start; footprints chosen for JLCPCB assembly
   (0402 or 0603 passives, the codec's VQFN-24 with its thermal pad).
 - Test points on every rail, BCLK, FSYNC, both data lines, MD0–MD5, the phantom rail and each
@@ -60,8 +63,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 ## Phase 3: layout
 
-- The HAT+ outline (65 × 56.5 mm, M2.5 holes on 58 × 49 mm), the 40-pin header, the four XH
-  connectors along one edge, clear of the Pi 5's camera, display and PCIe connectors, with 16 mm
+- The HAT+ outline (65 × 56.5 mm, M2.5 holes on 58 × 49 mm), the 40-pin header, the input,
+  output and panel connectors along the edges, clear of the Pi 5's camera, display and PCIe connectors, with 16 mm
   standoffs so the Active Cooler fits beneath it.
 - **4 layers**: signal, unbroken ground, power, signal. The boost converters in the corner
   furthest from the inputs, their switching loops small, the 1 MΩ nodes short and guarded. One
@@ -97,6 +100,8 @@ On piv, the bench device, not vip (vip's WM8960 stays wired as it is).
 
 Evidence into `bench-results/<date>-<what>/`, as the pedal does.
 
+- Plug detection and every switch, read by the Pi, in each combination; phantom present only on
+  the XLR pins, and never with its switch off, including through the Pi's standby and reboot.
 - Noise floor and headroom per input mode, phantom off and on, and the Mic path's equivalent input
   noise with 150 Ω on its input.
 - THD+N and frequency response, in and out.
