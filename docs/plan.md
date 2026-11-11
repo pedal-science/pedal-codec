@@ -5,16 +5,17 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"). Two questions are
-   left: whether the board also takes the TAC5212 (phase 1's first step), and whether the balanced
-   outputs get the −20 dB pad, and with a panel switch or a jumper.
+1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"). One question is
+   left: whether the balanced outputs get the −20 dB pad, and with a panel switch or a jumper.
 
-Last changed 2026-11-11: balanced outputs added, an XH 3-pin per output for a male XLR, carrying
-the same audio as the unbalanced 2-pin, after the pedal's own XLR output design. Before that the
-same day: the inputs reworked around combo jacks with their XLR and ¼″ halves
-wired separately. The plug chooses the path, a panel switch per input chooses Line, and phantom
-power comes only from a panel switch and reaches only the XLR pins. Before that the same day: a
-Mic mode, full-size HAT+, and the filtered 5 V rail.
+Last changed 2026-11-11: the codec is now the TAC5212, the I2C-controlled twin, so the Pi sets it up
+in software (ultra-low-latency filters, digital volume); the strap pins are gone, and the risk moves
+to its Linux driver. Before that the same day: balanced outputs added, an XH 3-pin per output for a
+male XLR, carrying the same audio as the unbalanced 2-pin, after the pedal's own XLR output design.
+Before that the same day: the inputs reworked around combo jacks with their XLR and ¼″ halves wired
+separately. The plug chooses the path, a panel switch per input chooses Line, and phantom power
+comes only from a panel switch and reaches only the XLR pins. Before that the same day: a Mic mode,
+full-size HAT+, and the filtered 5 V rail.
 
 ## Tools
 
@@ -31,8 +32,8 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 ## Phase 1: decisions and numbers
 
-- Read the TAC5212 datasheet: can one footprint take either part, and at what cost in straps?
-  The owner decides from that.
+- Find the state of the `tac5x1x` driver upstream (merged, and in which kernel) and whether TI's
+  out-of-tree driver builds against rtpi's kernel, so phase 5 isn't the first time anyone tries.
 - Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB
   search): AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its
   post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amps (the
@@ -58,7 +59,7 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 ## Phase 2: schematic
 
 - A KiCad 10 project in `hardware/`, hierarchical: header and EEPROM, power, phantom supply, codec
-  and straps, input channel (one sheet used twice: both halves of the jack, KA and KB, the panel
+  and its I2C address and clock options, input channel (one sheet used twice: both halves of the jack, KA and KB, the panel
   logic), output channel (one sheet used twice: the mute, the unbalanced stage, the balanced
   followers and their protection), the panel connector and v1's on-board switches.
 - `LCSC` and `MPN` fields on every symbol from the start; footprints chosen for JLCPCB assembly
@@ -90,8 +91,9 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 - JLCPCB, 4-layer, 5 boards, assembled on the top side (the codec's QFN needs a stencil and reflow
   anyway); the through-hole header and XH connectors either by JLCPCB or by hand. PCBWay is the
   fallback if a part is out of stock at LCSC.
-- Optionally, in parallel: TI's TAC5242EVM-K, to bring the codec up on a Pi before the boards
-  arrive.
+- Optionally, in parallel: TI's TAC5212 evaluation module, to bring the codec and its driver up
+  on a Pi before the boards arrive. With the driver the one new risk, this is worth more than it
+  was for the TAC5242.
 - **Done when** the owner has the quote and has placed the order. Agents never place it.
 
 ## Phase 5: bring-up
@@ -102,7 +104,10 @@ On piv, the bench device, not vip (vip's WM8960 stays wired as it is).
   phantom off and on, no part warm.
 - EEPROM: written with Raspberry Pi's `eepmake` and `eepflash.sh` (WP held low at its test
   point), naming the overlay.
-- The overlay in `overlay/`, then playback, capture, and an analogue loopback at 48 kHz.
+- The codec's driver (upstream `tac5x1x` if merged, TI's otherwise) built for piv's kernel, the
+  codec answering at 0x50 on I2C1.
+- The overlay in `overlay/`, then playback, capture, and an analogue loopback at 48 kHz, with the
+  ALSA controls the driver exposes.
 - **Done when** audio passes from input to output through the Pi, and the board identifies
   itself through `/proc/device-tree/hat/`.
 

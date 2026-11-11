@@ -1,6 +1,6 @@
 # pedal-codec
 
-A stereo audio board for the Raspberry Pi, built around Texas Instruments' TAC5242 codec (119 dB
+A stereo audio board for the Raspberry Pi, built around Texas Instruments' TAC5212 codec (119 dB
 ADC, 120 dB DAC):
 
 - two inputs for combo XLR/¼″ jacks: **Instrument** (1 MΩ) or **Line** on the ¼″, **Mic** or

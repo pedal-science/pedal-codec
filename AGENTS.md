@@ -1,12 +1,12 @@
 # pedal-codec
 
 A Raspberry Pi audio board, in the spirit of Raspberry Pi's Codec Zero, built around Texas
-Instruments' **TAC5242**: two inputs for combo XLR/¼″ jacks (Instrument or Line on the ¼″, Mic or
-Line on the XLR, chosen by the plug and a panel switch), each with optional +48 V phantom power from
-a panel switch, and two line outputs, each both unbalanced and balanced (for XLR), all on JST XH
-connectors, on a full-size HAT+. Power, audio and control come through the Pi's 40-pin header.
-Started 2026-11-11 as an aside from the pedal; it may later replace the pedal's SparkFun WM8960
-board, which is a separate decision.
+Instruments' **TAC5212** (I2C-controlled): two inputs for combo XLR/¼″ jacks (Instrument or Line on
+the ¼″, Mic or Line on the XLR, chosen by the plug and a panel switch), each with optional +48 V
+phantom power from a panel switch, and two line outputs, each both unbalanced and balanced (for
+XLR), all on JST XH connectors, on a full-size HAT+. Power, audio and control come through the Pi's
+40-pin header. Started 2026-11-11 as an aside from the pedal; it may later replace the pedal's
+SparkFun WM8960 board, which is a separate decision.
 
 This file is canonical for every agent; `CLAUDE.md` only imports it. The pedal as a system is
 `../pedal.project/AGENTS.md`, and `../pedal.project/docs/working-across-repos.md` says which
@@ -16,7 +16,7 @@ repository owns what.
 
 | Path | What it is |
 |---|---|
-| `docs/design.md` | The requirements, what the TAC5242 datasheet changes about them, the board's blocks, and the open questions |
+| `docs/design.md` | The requirements, the codec (TAC5212) and what its datasheet means for the board, the board's blocks, and the open questions |
 | `docs/plan.md` | The phases from requirements to tested boards, each with its done-when, and the tools each uses. Start at "Next session starts with" |
 | `sim/` | The ngspice decks for the analogue stages and their results, once written (phase 1) |
 | `hardware/` | The KiCad 10 project, once started (phase 2) |

@@ -7,7 +7,8 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
 
 - A board like Raspberry Pi's [Codec Zero](https://www.raspberrypi.com/documentation/accessories/audio.html)
   in size (Pi Zero size, 65 × 30 mm); a full-size HAT (65 × 56.5 mm) is fine too.
-- The codec is TI's [TAC5242](https://www.ti.com/product/TAC5242).
+- The codec is TI's [TAC5242](https://www.ti.com/product/TAC5242). (Changed to the TAC5212 the
+  same day; see "Decided".)
 - **Two analogue inputs** on JST XH 2-pin connectors, each switchable between **Instrument** and
   **Line**, each with **optional +48 V**.
 - **Two analogue outputs** on JST XH 2-pin connectors, line level.
@@ -35,6 +36,8 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
    software can show the state, but it can't change it.
 6. **Each output is also balanced**, on its own XH 3-pin for a male XLR panel socket, carrying the
    same audio as its unbalanced XH 2-pin. Both forms are live at once.
+7. **The codec is the TAC5212**, the TAC5242's I2C-controlled twin, so the Pi configures it in
+   software. The question of laying out for either part is closed.
 
 Why not detect everything (asked 2026-11-11): the board can tell which half of the jack is in use,
 TS from TRS, a passive pickup's few kΩ from a dynamic mic's 150–600 Ω, and, once phantom is on,
@@ -43,61 +46,77 @@ like a coupling capacitor, but a wrong guess there only costs level), and it can
 device will tolerate 48 V before applying it, which is the guess that does damage. So the plug
 chooses the path, the player chooses the rest, and phantom is always a deliberate switch.
 
-## What the TAC5242 changes
+## The codec: TAC5212
 
-Read from the datasheet, [SLASF27A](https://www.ti.com/lit/gpn/TAC5242) (November 2024).
+The board was specified with the TAC5242 and changed to its software-controlled twin, the
+[TAC5212](https://www.ti.com/product/TAC5212), on 2026-11-11 (owner). Both are the same converters
+in the same 4 × 4 mm VQFN-24: 119 dB ADC and 120 dB DAC dynamic range, 2 Vrms differential full
+scale in and out. The TAC5242 is set by six strap pins and nothing else; the TAC5212 has registers,
+reached over I2C, so the Pi sets it up. Read from the TAC5212's datasheet,
+[SLASF23A](https://www.ti.com/lit/gpn/TAC5212) (January 2025).
 
-**It is pin-controlled, with no I2C or SPI.** Six mode pins (MD0–MD5) set everything, and they
-must be stable before the audio clocks start. So there are no registers, no mixer, no analogue
-gain and no digital volume: whatever level the codec sees is set by the circuit in front of it.
+**What I2C control gives this board:**
 
-| Pin | Setting it carries (target mode) | Choice for v1 |
-|---|---|---|
-| MD0 (multi-level) | Target/controller, I2S/TDM/LJ: GND = target I2S; AVDD = controller I2S; 4.7 k or 22 k for TDM and LJ | GND (target I2S), with a solder-jumper option for controller I2S |
-| MD2, MD1 | AVDD 3.3 V or 1.8 V, word length 24/32, linear-phase or low-latency filters | Solder jumpers; default 0,0 (3.3 V, 32-bit, linear phase), option 1,1 (low-latency) |
-| MD3 | I2S target: ADC high-pass 1 Hz or 12 Hz, and input-capacitor quick charge. Controller: the reference clock input (CCLK) | Low (1 Hz); footprint for a local oscillator on it for controller mode |
-| MD5, MD4 | Input and output configuration together | 0,0: differential input, AC-coupled; differential line output |
+- **Every setting changes in software**, not by moving a strap: the filters, the clocking,
+  differential or single-ended per channel, the input impedance, the high-pass filter, and the
+  DAC's level. The ALSA mixer can expose them, and the pedal's rule that the Core host owns the
+  codec's configuration holds as it does for the WM8960.
+- **Digital volume** on every channel: ADC −80 to +47 dB and DAC −100 to +27 dB, both in 0.5 dB
+  steps, with soft ramping and mute. The DAC also has a coarse output level, −12 to +12 dB in 6 dB
+  steps.
+- **Ultra-low-latency filters**, which the TAC5242 lacks. Group delay at 48 kHz:
 
-**Inputs and outputs are configured together.** MD5/MD4 = 0,0 gives the best figures (119 dB
-dynamic range in, 120 dB out) and is differential at both ends; single-ended mode (1,0) costs
-9–10 dB of dynamic range at both ends. So the codec runs differential, and the board converts:
-single-ended or balanced sources to differential at the inputs, differential to single-ended at the
-outputs.
+  | Filters | ADC | DAC | Round trip | Passband |
+  |---|---|---|---|---|
+  | Linear phase | about 16 samples | 17.6 samples | ≈ 0.70 ms | 0.455 × fS |
+  | Low latency | 6.5 samples | 7.2 samples | ≈ 0.29 ms | 0.376 × fS |
+  | Ultra-low latency | about 3–4 samples | 3.2 samples | ≈ 0.14 ms | 0.325 × fS |
 
-**Fixed full scale and a low input impedance.** At AVDD = 3.3 V, full scale is **2 Vrms
-differential (+8.2 dBu)** in and out. VREF is 2.75 V and needs AVDD ≥ 3 V. Each input pin is
-**5 kΩ ±20%**, so every source must be buffered, and the AC-coupling capacitors are sized against
-5 kΩ (10 µF gives 3.2 Hz).
+  The ultra-low filters' passband ends at 0.325 × fS: 15.6 kHz at 48 kHz, 31 kHz at 96 kHz. For a
+  guitar at 48 kHz that is no loss; for full-range sources, run at 96 kHz. v1 measures all three.
+- **Selectable input impedance**, 5, 10 or 40 kΩ per pin (SNR 119, 115 and 105 dB). The FDA drives
+  it, so 5 kΩ, the quietest, stays the choice.
+- **A high-swing mode**, 4 Vrms differential (+14.2 dBu), DC-coupled with external bias. On the
+  5 V rail the FDA can't swing that far (about 3.4 Vrms differential), so this board doesn't use
+  it; it would matter only if a higher analogue rail ever appears.
+- **Four GPIO-type pins** (GPIO1, GPIO2, GPO1, GPI1): an interrupt to the Pi, and GPI1 as the PLL's
+  reference clock for codec-master operation.
+- Programmable MICBIAS (to 3 V). Unused here, since the mic path has its own preamp and phantom
+  supply; it goes to a test point.
 
-**It needs no MCLK.** In target mode its PLL locks to BCLK and FSYNC alone (BCLK/FSYNC from 16 to
-512; 64 × 48 kHz = 3.072 MHz, which the Pi's I2S produces). That is the difference from the WM8960
-board in the pedal now, whose 24 MHz oscillator forces the codec to be clock master. Here either
-side can be master: the Pi (simplest), or the codec, from a local low-jitter oscillator on MD3
-(CCLK/256 = FSYNC, so 12.288 MHz for 48 kHz). The board offers both, so the two can be measured.
+**What it does not give:** an analogue preamp. Its "channel gain" lowers the full scale and the SNR
+together (119 dB at 0 dB, 107 dB at 12 dB), so the noise referred to the input doesn't improve: it
+is gain in the digital domain. The mic preamp stays on the board.
 
-**Latency.** The filters' group delay, at 48 kHz:
+**I2C:** SCL and SDA go to the Pi's I2C1 (GPIO 2 and 3, which already carry pull-ups on the Pi).
+The ADDR pin sets the address with a resistor: to ground 0x50 (the default here), 4.7 kΩ to ground
+0x51, 22 kΩ to AVDD 0x52, 4.7 kΩ to AVDD 0x53, and tied to AVDD it selects SPI instead. The HAT+ ID
+EEPROM is on the separate ID bus (GPIO 0 and 1), so 0x50 doesn't collide with it.
 
-| Filters | ADC | DAC | Round trip |
-|---|---|---|---|
-| Linear phase | 16.1 samples | 17.6 samples | ≈ 0.70 ms |
-| Low latency | 6.5 samples | 6.6 samples | ≈ 0.27 ms |
+**Configuration:** the codec runs differential at both ends, which gives the 119/120 dB, and the
+board converts: single-ended or balanced sources to differential at the inputs, differential to
+single-ended at the unbalanced outputs. At the default VREF (2.75 V, which needs AVDD ≥ 3 V) full
+scale is **2 Vrms differential (+8.2 dBu)** in and out, and each input pin is 5 kΩ at the default
+impedance setting, so every source is buffered and the coupling capacitors are sized against it
+(10 µF gives 3.2 Hz).
 
-For a guitar pedal the low-latency filters are the likely choice; v1 measures both.
+**Clocking: no MCLK.** In target mode the PLL locks to BCLK and FSYNC alone (64 × 48 kHz =
+3.072 MHz from the Pi's I2S). That is the difference from the WM8960 board in the pedal now, whose
+24 MHz oscillator forces the codec to be clock master. Here either side can be master: the Pi
+(simplest), or the codec, from a local low-jitter oscillator on GPI1 (up to 36.864 MHz). The board
+carries the oscillator's footprint, so the two can be measured.
 
-**Other pins.** DREG (1.55 V internal regulator) and VREF each need their own capacitor (VREF ≥ 1 µF,
-no load). MICBIAS gives 2.75 V at up to 5 mA, for electret capsules; it is not phantom power. GPO
-is a latched interrupt for a clock error. Supplies may come up in either order, ramping slower than
-0.1 V/µs, with ≥ 100 ms between power-down and power-up.
+**Other pins.** DREG (1.55 V internal regulator) and VREF each need their own capacitor (VREF
+≥ 1 µF, no load). Supplies may come up in either order, ramping slower than 0.1 V/µs.
 
-**A software-controlled twin.** The [TAC5212](https://www.ti.com/product/TAC5212) is pin-for-pin
-compatible, controlled over I2C or SPI, with programmable channel gain, digital volume, a
-programmable MICBIAS (to 3 V) and a TI Linux driver (TAC5X1X-LINUX-DRIVER). **Open:** whether to
-lay the board out so either part fits, with the MD pins' straps and an I2C route as alternatives.
-Phase 1 checks the TAC5212's pin functions before deciding.
+**Linux.** TI publishes a driver for the family (TAC5X1X-LINUX-DRIVER). An upstream ASoC driver,
+`tac5x1x`, has been posted to the kernel lists several times, most recently as a reworked series
+in March 2026; whether it has been merged is checked in phase 5. Until it is, rtpi builds TI's
+driver as a module for the pedal's kernels. This is the one risk the TAC5242 didn't have: it needed
+no driver at all.
 
-**Availability.** LCSC lists the TAC5242IRGER as C47122155, about 2,900 in stock and $6–8 each
-when searched on 2026-11-11, from cached pages: check again before phase 2 and before ordering. A
-Zynthian forum thread from 2024 reported it hard to get.
+**Availability.** LCSC lists the TAC5212IRGER as C44853694; stock wasn't confirmed on 2026-11-11.
+Check it in phase 1, and again before ordering.
 
 ## Size
 
@@ -139,10 +158,10 @@ the PANEL connector, so the board can be tested on the bench with nothing attach
 Pi header ─ 5 V ─┬─ load switch (EN from 3.3 V) ─ ferrite + LC ─ analogue 5 V ─ op-amps
                  │                                              └─ RC-filtered, buffered mid-rail (≈ 2.45 V)
                  ├─ relay coils (own filter branch)
-                 ├─ filter ─ low-noise LDO (EN from 3.3 V) ─ 3.3 V AVDD ─ TAC5242
+                 ├─ filter ─ low-noise LDO (EN from 3.3 V) ─ 3.3 V AVDD ─ TAC5212
                  └─ boost, ≥ 60 V switch ─ filter ─ +48 V ─ per-input switch ─ 6.81 k ×2 ─ XLR only
           3.3 V ─ IOVDD, EEPROM, switch and detect logic
-          I2S (GPIO 18–21) ─ BCLK, FSYNC, DIN, DOUT
+          I2S (GPIO 18–21) ─ BCLK, FSYNC, DIN, DOUT;  I2C1 (GPIO 2, 3) ─ SCL, SDA
 
 ¼″ tip ────── 1 MΩ ─ JFET buffer ─────────────┐ KA          ┐
 XLR 2/3 ─ 47 µF ×2 ─ mic preamp, ≈ 20 dB ─────┘ (plug)  ─ L ├ KB (Line switch) ─ FDA ─ 10 µF ─ IN1P/M
@@ -248,7 +267,9 @@ OUT1P/M ─ 10 µF ×2 ─ mute (K_M) ─┬─ diff-to-SE stage ─ 10 µF ─ 
 **The mute** comes first, so one element silences both forms: K_M, a DPDT relay per output, whose
 de-energised state ties each leg to the mid-rail through 1 kΩ (the pedal's arrangement: a load, not
 a short across the codec's output). GPIO 24 drives both outputs' relays, pulled to muted, so
-nothing reaches either jack while the Pi boots, in standby or before the software unmutes.
+nothing reaches either jack while the Pi boots, in standby or before the software unmutes. While
+the system runs, the codec's own soft-ramped DAC mute and volume do the everyday muting; the relay
+is for the times the codec isn't configured yet, or isn't powered.
 
 **Unbalanced:** a differential-to-single-ended op-amp stage, then 10 µF, 100 Ω and a 100 kΩ bleed to
 the connector. On 5 V the stage swings about 1.7 Vrms, so full scale at the output is about +6 dBu
@@ -261,7 +282,7 @@ the connector. On 5 V the stage swings about 1.7 Vrms, so full scale at the outp
 This board takes that design, with two differences.
 
 - **The codec already drives both legs.** The pedal's WM8960 has single-ended outputs, so its
-  driver makes cold with an inverter. The TAC5242's output is differential: hot follows OUTxP and
+  driver makes cold with an inverter. The TAC5212's output is differential: hot follows OUTxP and
   cold follows OUTxM, through two identical unity followers on the 5 V rail. Symmetric drive comes
   from the codec, and the two legs are the same circuit.
 - **5 V, not 9 V.** Each follower swings about 1.7 Vrms, so the pair could give +12.8 dBu
@@ -282,7 +303,9 @@ From the pedal's design, unchanged:
   simulation with this board's rail and its capacitance.
 - **A −20 dB pad, optional**, at the followers' input so the output impedances, and the balance,
   never change. It is for mic inputs on stage boxes, many of which run out of headroom near
-  +8.2 dBu at minimum gain. **Open:** fit it, and if so, a panel switch per output (DC only, as the
+  +8.2 dBu at minimum gain. The codec's DAC volume could lower the level in software instead, but
+  both forms share one codec output, so it would lower the ¼″ output with it; a pad lowers only
+  the XLR. **Open:** fit it, and if so, a panel switch per output (DC only, as the
   board's other switches, driving an analogue switch, which is fine at that buffered node) or a
   solder jumper.
 - **Pin 1 belongs to the chassis at the socket**, not to the board's ground: AES48, and the
@@ -337,16 +360,16 @@ state; phase 1 weighs it.
 | 12, 13 | In: input 1 and 2, the Line switch (which also drives KB). A solder jumper turns each into an output that drives KB instead |
 | 22, 23 | In: input 1 and 2, +48 V present on the feed (through a divider) |
 | 24 | Out: mute, both outputs in both forms (pulled to muted) |
-| 25 | Codec GPO (clock-error interrupt) |
+| 2, 3 | I2C1: the codec's SCL and SDA (address 0x50) |
+| 25 | In: the codec's interrupt (GPO1, or GPIO1 by register) |
 
-Left free on purpose: GPIO 2/3 (I2C1, needed if the TAC5212 is fitted), 14/15 (the UART that
-carries the pedal's Pico link) and 7–11 (SPI0).
+Left free on purpose: 14/15 (the UART that carries the pedal's Pico link) and 7–11 (SPI0).
 
 ### Software
 
-The Pi needs a device-tree overlay: `simple-audio-card` with the Pi's I2S and a codec node with no
-controls (the kernel's generic codecs fit; which one is chosen in phase 5). The EEPROM names the
-overlay (`pedalscience-codec`, following the HAT+ spec's maker-board form). Its source lives in
+The Pi needs a device-tree overlay: `simple-audio-card` with the Pi's I2S, and the codec on I2C1
+at 0x50 with the TAC5x1x driver (see "Linux" above), which gives ALSA its controls. The EEPROM names
+the overlay (`pedalscience-codec`, following the HAT+ spec's maker-board form). Its source lives in
 `overlay/`. If the pedal adopts the board, rtpi builds it into the pedal's kernels, as it does
 device-tree work now.
 
@@ -358,12 +381,13 @@ device-tree work now.
 - The phantom supply's ripple and noise at the input with phantom on and off.
 - The balanced outputs' balance (output impedance matching, as IEC 60268-3 tests a receiver) and
   their survival of phantom power switched on, left on and hot-plugged.
-- Round-trip latency with each filter set, and Pi-master against codec-master clocking.
+- Round-trip latency with each filter set (linear, low, ultra-low), and Pi-master against codec-master clocking.
 - That nothing from the Pi's 5 V reaches the audio.
 
 ## Relation to the pedal
 
 The pedal's constraints (`../pedal.project/AGENTS.md`) name the WM8960 and its clock-master
 arrangement. This board doesn't touch them. Fitting it to the pedal would change several of them
-(the codec, the clocking, the Core host's I2C ownership no longer being needed), so it's a decision
-for the owner once v1 has been measured.
+(the codec, its driver, the clocking: the Pi as master instead of the codec), so it's a decision
+for the owner once v1 has been measured. The Core host still owns the codec's I2C bus, as it does
+now.
