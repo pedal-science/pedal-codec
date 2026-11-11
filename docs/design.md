@@ -38,6 +38,8 @@ marked **Open**. [plan.md](plan.md) is the order in which they are settled and t
    same audio as its unbalanced XH 2-pin. Both forms are live at once.
 7. **The codec is the TAC5212**, the TAC5242's I2C-controlled twin, so the Pi configures it in
    software. The question of laying out for either part is closed.
+8. **Each balanced output has a −20 dB pad on a panel switch**, so its XLR can feed a stage box's
+   mic input at about DI-box level without turning the ¼″ output down.
 
 Why not detect everything (asked 2026-11-11): the board can tell which half of the jack is in use,
 TS from TRS, a passive pickup's few kΩ from a dynamic mic's 150–600 Ω, and, once phantom is on,
@@ -142,7 +144,7 @@ XLR half needs three pins of its own, and keeping the ¼″ half on separate pin
 | IN 1 ¼″, IN 2 ¼″ | JST XH 4-pin (B4B-XH-A) | 1 sleeve, 2 tip, 3 ring, 4 insert switch |
 | OUT 1, OUT 2 | JST XH 2-pin (B2B-XH-A) | 1 ground, 2 signal: unbalanced, for a ¼″ TS jack |
 | OUT 1 BAL, OUT 2 BAL | JST XH 3-pin (B3B-XH-A) | 1 SHIELD (XLR pin 1), 2 hot, 3 cold: balanced, for a male XLR panel socket (the pedal's choice is the Neutrik NC3MD-LX) |
-| PANEL | One connector, part chosen in phase 2 (about 10 pins) | Ground, both inputs' Line switches, both phantom switches, both phantom LEDs |
+| PANEL | One connector, part chosen in phase 2 (about 12 pins) | Ground, both inputs' Line switches, both phantom switches, both phantom LEDs, both balanced outputs' pad switches |
 
 **The combo jack** needs a switching contact on its ¼″ side, **isolated** from the tip. A contact
 normalled to the tip would put the detection's pull-up on the 1 MΩ instrument node. Neutrik's NCJ6
@@ -260,7 +262,7 @@ connectors, not four outputs; the two forms of one output always carry the same 
 ```
 OUT1P/M ─ 10 µF ×2 ─ mute (K_M) ─┬─ diff-to-SE stage ─ 10 µF ─ 100 Ω ─ OUT 1 (100 k bleed)
                                   │
-                                  └─ pad (−20 dB, optional) ─ follower ×2 ─ 100 Ω ─ 47 µF 63 V ─ 10 Ω ─ OUT 1 BAL pin 2
+                                  └─ pad (−20 dB, panel) ─ follower ×2 ─ 100 Ω ─ 47 µF 63 V ─ 10 Ω ─ OUT 1 BAL pin 2
                                                                          (P → hot, M → cold)   clamps ┘ (100 k bleed) pin 3
 ```
 
@@ -301,13 +303,21 @@ From the pedal's design, unchanged:
   pin from 69 A to 3.7 A; Schottky clamps from each driver-side node to the analogue 5 V and from
   ground. Here the clamps return into the 5 V rail and its filter, so phase 1 re-runs the
   simulation with this board's rail and its capacitance.
-- **A −20 dB pad, optional**, at the followers' input so the output impedances, and the balance,
+- **A −20 dB pad, on a panel switch per output** (decided), at the followers' input so the output impedances, and the balance,
   never change. It is for mic inputs on stage boxes, many of which run out of headroom near
   +8.2 dBu at minimum gain. The codec's DAC volume could lower the level in software instead, but
   both forms share one codec output, so it would lower the ¼″ output with it; a pad lowers only
-  the XLR. **Open:** fit it, and if so, a panel switch per output (DC only, as the
-  board's other switches, driving an analogue switch, which is fine at that buffered node) or a
-  solder jumper.
+  the XLR. At full scale the pad takes the XLR from +8.2 dBu to −11.8 dBu.
+  - **The divider is always fitted** (as in the pedal: 9.1 kΩ over 1 kΩ per leg, 0.1 % so the two
+    legs match), and the switch chooses which point feeds the followers: the full signal, or the
+    divider's tap.
+  - **The panel switch carries DC only**, like the board's other switches. It drives a dual SPDT
+    analogue switch on the board, one pole per leg. That node sits at the mid-rail, inside the
+    5 V rails, and feeds a follower's high input impedance, so the analogue switch's on-resistance
+    adds no measurable distortion there. Phase 1 picks the part and checks it in simulation.
+  - The Pi reads each pad switch, as it reads the others (GPIO 16 and 26), but can't set it.
+  - The amount is one resistor, as in the pedal's design: 330 Ω in place of the 1 kΩ gives about
+    −29 dB, nearer a real microphone's level.
 - **Pin 1 belongs to the chassis at the socket**, not to the board's ground: AES48, and the
   pedal's "pin 1 problem". The XH 3-pin carries pin 1 as its own net, SHIELD, which reaches the
   board's ground only through an unfitted footprint (0 Ω or 10 nF) for builds with no metal case.
@@ -362,6 +372,7 @@ state; phase 1 weighs it.
 | 24 | Out: mute, both outputs in both forms (pulled to muted) |
 | 2, 3 | I2C1: the codec's SCL and SDA (address 0x50) |
 | 25 | In: the codec's interrupt (GPO1, or GPIO1 by register) |
+| 16, 26 | In: output 1 and 2, the balanced pad switch (which also drives the pad's analogue switch) |
 
 Left free on purpose: 14/15 (the UART that carries the pedal's Pico link) and 7–11 (SPI0).
 

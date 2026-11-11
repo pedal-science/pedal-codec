@@ -5,17 +5,19 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. Phase 1. The owner's decisions are in [design.md](design.md) ("Decided"). One question is
-   left: whether the balanced outputs get the −20 dB pad, and with a panel switch or a jumper.
+1. Phase 1, starting with the codec's Linux driver. The owner's decisions are in
+   [design.md](design.md) ("Decided"); no design question is open.
 
-Last changed 2026-11-11: the codec is now the TAC5212, the I2C-controlled twin, so the Pi sets it up
-in software (ultra-low-latency filters, digital volume); the strap pins are gone, and the risk moves
-to its Linux driver. Before that the same day: balanced outputs added, an XH 3-pin per output for a
-male XLR, carrying the same audio as the unbalanced 2-pin, after the pedal's own XLR output design.
-Before that the same day: the inputs reworked around combo jacks with their XLR and ¼″ halves wired
-separately. The plug chooses the path, a panel switch per input chooses Line, and phantom power
-comes only from a panel switch and reaches only the XLR pins. Before that the same day: a Mic mode,
-full-size HAT+, and the filtered 5 V rail.
+Last changed 2026-11-11: the balanced outputs' −20 dB pad is fitted, on a panel switch per output
+that drives an analogue switch on the board. Before that the same day: the codec is now the TAC5212,
+the I2C-controlled twin, so the Pi sets it up in software (ultra-low-latency filters, digital
+volume); the strap pins are gone, and the risk moves to its Linux driver. Before that the same day:
+balanced outputs added, an XH 3-pin per output for a male XLR, carrying the same audio as the
+unbalanced 2-pin, after the pedal's own XLR output design. Before that the same day: the inputs
+reworked around combo jacks with their XLR and ¼″ halves wired separately. The plug chooses the
+path, a panel switch per input chooses Line, and phantom power comes only from a panel switch and
+reaches only the XLR pins. Before that the same day: a Mic mode, full-size HAT+, and the filtered 5
+V rail.
 
 ## Tools
 
@@ -34,12 +36,13 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 - Find the state of the `tac5x1x` driver upstream (merged, and in which kernel) and whether TI's
   out-of-tree driver builds against rtpi's kernel, so phase 5 isn't the first time anyone tries.
-- Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB
-  search): AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its
-  post-regulator, the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amps (the
-  unbalanced stage, and the balanced followers: a dual per output), the relays
-  (latching or not) and their drivers, the EEPROM, the oscillator, and the combo jack: one whose
-  ¼″ switching contact is isolated from the tip, and the panel's switches and LEDs. Prefer JLCPCB "basic" parts for passives.
+- Choose each active part with an LCSC number and stock (the `lcsc` skill, Konnect's JLCPCB search):
+  AVDD LDO, the analogue rail's load switch and filter, the phantom boost and its post-regulator,
+  the JFET op-amp, the mic preamp's op-amp, the FDA, the output op-amps (the unbalanced stage, and
+  the balanced followers: a dual per output), the relays (latching or not) and their drivers, the
+  pad's analogue switch, the EEPROM, the oscillator, and the combo jack: one whose ¼″ switching
+  contact is isolated from the tip, and the panel's switches and LEDs. Prefer JLCPCB "basic" parts
+  for passives.
 - Simulate in ngspice (the `spice` skill), with models from the makers where they exist:
   - each input mode (Instrument, Line, Mic): gain, headroom against the 5 V rail and the codec's
     +8.2 dBu, noise referred to the input, frequency response with the 5 kΩ input and the coupling
@@ -120,7 +123,8 @@ Evidence into `bench-results/<date>-<what>/`, as the pedal does.
 - Noise floor and headroom per input mode, phantom off and on, and the Mic path's equivalent input
   noise with 150 Ω on its input.
 - THD+N and frequency response, in and out.
-- The balanced outputs: the two legs' impedances matched, level at full scale, and phantom power
+- The balanced outputs: the two legs' impedances matched, level at full scale with the pad in and
+  out, and phantom power
   switched on, left on and hot-plugged (a phantom-powered input, such as the SSL 2+'s, as the
   pedal plans).
 - Round-trip latency, linear-phase against low-latency filters, Pi-master against codec-master.
