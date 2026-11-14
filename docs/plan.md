@@ -7,13 +7,12 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 1. **The concept is agreed** (the owner, 2026-11-14):
    [../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md). Its plan
-   is the plan now. Its step 2 (parts and the mechanical model) is under way: the case's sizes
-   are from Hammond's and Tayda's drawings, and the wall sockets are chosen (Neutrik NMJ6HCD2
-   three times, NCJ6FA-H, a PJ-392-type MIDI socket; that file, "Parts chosen so far").
-2. Next here: the parts still to choose (the USB-C socket, the lit buttons, the 40-pin
-   socket; the encoder and the flat cables' sockets are chosen), then cut this repository's schematic into the audio
-   board and draw the Pi board. Phases 3 to 9 below describe the earlier single board and are
-   rewritten when that starts; [box-board.md](box-board.md) likewise.
+   is the plan now. Its step 2 (parts and the mechanical model) is done but for how the buttons
+   are lit: every socket, switch and connector has a part and an LCSC number (that file, "Parts
+   chosen so far"), and the case has a first hole table.
+2. Next here: cut this repository's schematic into the audio board, and draw the Pi board and
+   the control board, with those parts. Phases 3 to 9 below describe the earlier single board
+   and are rewritten when that starts; [box-board.md](box-board.md) likewise.
 
 Last changed 2026-11-14: **the target changed to a board for the 1590DD box** (the owner, after
 running the pedal in that case the same day), specified in [box-board.md](box-board.md), and
