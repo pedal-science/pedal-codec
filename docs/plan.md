@@ -87,7 +87,7 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 The box board's outline, found in the case before anything is drawn in KiCad.
 
-- The owner's measurements (box-board.md, "Measurements needed").
+- The owner's measurements (box-board.md, "Measurements").
 - `../pedal.project/enclosure/src/medium_layout.py` gains the rotary controller, the button, the
   new footswitches' depth, the USB-C, the board's outline with its pillar notches and any cut-outs,
   the ribbon's path from the Pi's header, the standoffs, and, if they fit, the mic, MIDI and
