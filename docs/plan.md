@@ -5,11 +5,13 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **The owner's measurements are in** [box-board.md](box-board.md), "Measurements", with what
-   they mean for the fit. Three choices and one measurement are still his ("Still needed"): the
-   footswitch depth, button B2's position, where EXT FS goes, and the footswitches' centres and
-   body size.
-2. Then the rest of phase 3: the fit drawn in `pedal.project`'s case layout, and the card template.
+1. **The owner confirms or changes the concept** in
+   [../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md), "To confirm":
+   a design made to be built again, with the sockets on the boards, an audio board and a Pi
+   board, power through the Pi board, and block cooling tried before a fan.
+2. Then that file's plan, from its step 1 (the heat test on the prototype) and step 2 (parts and
+   the mechanical model). Phases 3 to 9 below describe the earlier single board and are rewritten
+   to match once the concept is confirmed; [box-board.md](box-board.md) likewise.
 
 Last changed 2026-11-14: **the target changed to a board for the 1590DD box** (the owner, after
 running the pedal in that case the same day), specified in [box-board.md](box-board.md), and

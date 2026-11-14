@@ -1,5 +1,14 @@
 # pedal-codec: the box board (1590DD)
 
+> **Being superseded (2026-11-14).** The owner's aim is a design that can be made again, not a
+> board fitted to the working prototype. The proposal is
+> [../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md): an audio board
+> with its sockets on it, a Pi board that plugs onto the Pi's header, and a control board. Until
+> the owner confirms it, this file stays as written. Its circuits, decisions and chosen parts
+> carry over; its form, its XH leads and its ribbon do not. The owner has since answered two of
+> "Still needed": the footswitches are where the case drawing has them, sunk 16 mm, and their
+> bodies are 13 × 13 mm in plan (29.7 mm with the lugs, which point sideways) and 13 mm tall.
+
 Requirements and specification, 2026-11-14. The owner's brief of the same day, written down, with
 what follows from it and the owner's answers to the questions it raised (all decided the same
 day). [plan.md](plan.md) is the route from here to a board in the box.
