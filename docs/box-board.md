@@ -39,7 +39,7 @@ the rear wall toward the player, both in mm.
 
 | Item | Where | Status |
 |---|---|---|
-| Hammond 1590DD | 178.26 × 110.26 mm inside, 30 mm deep (measured; the drawing says about 33); six full-height screw pillars (four corners, the centres of the rear and front edges), about 8 mm across | fixed |
+| Hammond 1590DD | 178.26 × 110.26 mm inside, 30 mm deep (measured; Tayda's drawing says 30.5 and Hammond's 32.0, see pedal.project's docs/box-design.md, "Which 1590DD"); six full-height screw pillars (four corners, the centres of the rear and front edges), about 8 mm across | fixed |
 | 4.3″ DSI QLED screen ([Waveshare](https://www.waveshare.com/wiki/4.3inch_DSI_QLED)) | 99 × 59 mm cutout, 10 mm from the left and 9 mm from the rear | fixed |
 | Pi 5 (vip) | On the screen's standoffs, x 16.5–101.5, y 10.5–66.5. Screen, standoffs and Pi take about 30 of the 33 mm. Its 40-pin header is along its front edge | fixed |
 | Footswitches FS1–FS3 | 69 mm pitch, centres 29 mm from the front wall (y ≈ 81), at x ≈ 20, 89, 158. The ones on order go about **10 mm** into the case | fixed, new parts due |
