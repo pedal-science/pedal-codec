@@ -5,18 +5,20 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. The owner reviews phase 1: [design.md](design.md), "Phase 1 values", and
-   [sim/results/README.md](../sim/results/README.md).
-2. Then phase 2, the schematic, starting with Neutrik's circuit drawing for the NCJ9FI-S's
-   switching contacts.
+1. The owner reviews phase 2: the schematic as a PDF, [hardware/pedal-codec.pdf](../hardware/pedal-codec.pdf),
+   with [schematic-review.md](schematic-review.md) and design.md's "Phase 2 schematic".
+2. Then phase 3, the layout, starting with two things the schematic leaves to it: a TAC5212
+   footprint with the RGE package's four corner pads, and KiCad's DNP attribute on the seven
+   unfitted parts.
 
-Last changed 2026-11-11: phase 1 done. The TAC5212 has no Linux driver anywhere yet (TI's v1 series
-of March 2026 has review changes outstanding), so v1 is brought up by configuring the codec from
-userspace over I2C. Every part is chosen with its LCSC number and stock, the phantom supply is a
-TPS61170 with a voltage doubler, the phantom capacitors are 47 µF pairs back to back (JLCPCB has no
-bipolar 63 V part), and ngspice shows each mode's gain, noise and headroom, the supply rejection,
-the phantom thump (hence a 1.5 s ramp and a software mute) and both phantom faults. Before that the
-same day: the decisions in design.md, "Decided".
+Last changed 2026-11-14: phase 2's schematic done and reviewed, waiting for the owner. Seven sheets
+in KiCad 10, every symbol with `LCSC` and `MPN`, ERC clean, the netlist checked across sheets, and
+the kicad-happy analysis and its ngspice run triaged with every finding answered. The review added
+one capacitor (C94, on the load switch's output) and checked every custom symbol's pinout against
+its maker's datasheet; the relays became Omron G6K-2F-Y, whose pinout is published. Before that,
+2026-11-11: phase 1 done (the TAC5212 brought up from userspace over I2C, every part with its
+LCSC number and stock, the phantom supply a TPS61170 with a voltage doubler, and ngspice for each
+mode, the supply rejection and the phantom thump and faults).
 
 ## Tools
 
@@ -74,6 +76,9 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 - ERC clean; a design review (`kicad-design-review-agent`) and the kicad-happy analysis (power
   tree, regulators, decoupling) with every finding answered.
 - **Done when** the owner has reviewed the schematic as a PDF export.
+- **Status (2026-11-14):** done but for the owner's review. `hardware/pedal-codec.pdf` is the export,
+  [schematic-review.md](schematic-review.md) the review. The independent `kicad-design-review-agent`
+  pass moves to phase 3, where it can see the layout too.
 
 ## Phase 3: layout
 

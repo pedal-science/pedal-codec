@@ -450,7 +450,7 @@ schematic is reviewed.
 | 2N7002 | Relay and phantom drivers | C8545 (basic) | 6,118,004 | $0.02 |
 | RT1206BRD073K4L | Phantom feed, 3.4 kΩ 0.1 %, two in series per leg | C870711 | 1,252 | $0.05 |
 | RV63V47M6X8 | 47 µF 63 V, two back to back per leg (inputs and balanced outputs: 16) | C48971005 | 363,499 | $0.06 |
-| HFD4/5-SR | DPDT signal relay, 5 V, gold contacts (eight) | C64399 | 29,307 | $1.45 |
+| G6K-2F-Y DC5 | DPDT signal relay, 5 V, gold-clad contacts (eight); replaced the HFD4/5-SR in phase 2 | C231389 | 4,579 | $1.48 |
 | TS5A23157DGSR | Balanced pad's analogue switch (one per output) | C11133 | 6,924 | $0.48 |
 | CAT24C32WI-GT3 | HAT+ ID EEPROM | C81193 | 7,757 | $0.39 |
 | HSO321S 12.288 MHz | Oscillator for codec-master, footprint only on v1 | C160458 | 1,372 | $0.75 |
@@ -498,6 +498,54 @@ Noise is over 20 Hz–20 kHz, unweighted, referred to the source (a 10 kΩ picku
   were at −54 dB and −56 dB.
 - **Mute:** −79 dB at both forms of each output.
 - **Phantom on an input**, and **on a balanced output**: in "Phantom power" and "Output" above.
+
+## Phase 2 schematic (2026-11-14)
+
+The KiCad 10 project in [`hardware/`](../hardware/): a root sheet and seven sheets (header and
+EEPROM, power, phantom supply, codec, panel, and the input and output channels, each used twice).
+ERC is clean, every symbol carries `LCSC` and `MPN`, and [schematic-review.md](schematic-review.md)
+is the review with every finding answered. What the schematic settled or changed from phase 1:
+
+- **The relays are Omron G6K-2F-Y** (C231389), not the HFD4/5-SR: the HFD4/5's pin assignment
+  isn't published anywhere it could be checked, and the G6K's is, on Omron's sheet and in KiCad's
+  own symbol and footprint. Same 5 V coil class and DPDT form; 4,579 in stock on 2026-11-11, which
+  covers eight per board many times over.
+- **The pad switch has a level shifter.** The TS5A23157 runs from the analogue 5 V, where its logic
+  high is 0.7 × V+, 3.5 V, more than a 3.3 V GPIO gives. A 2N7002 per output inverts the Pi's PAD
+  line into PADN, pulled up to 5 V: PAD high pads the output. In standby the analogue 5 V is off, so
+  nothing reaches the Pi's 3.3 V side.
+- **Plug detection uses the combo jack's sleeve normal.** The NCJ9FI-S's normals are closed with no
+  ¼″ plug and open with one. The sleeve normal (the XH 4-pin's pin 4) is pulled up to 3.3 V on the
+  board and drives both the GPIO (PLUG1, PLUG2) and the KA relays' driver directly, so the jack's
+  routing follows the plug without software.
+- **QOD has a 0 Ω (R164) to VOUT**, which is TI's quickest discharge; fitted as a resistor it slows
+  the discharge. **C94, 10 µF, on the load switch's output** came from the review: it keeps VOUT
+  above −0.3 V when the switch turns off with current in L1.
+- **The TAC5212's footprint needs its corner pins.** The RGE package has four corner VSS pads (A1–A4)
+  besides the thermal pad; the symbol carries them, and KiCad's `Texas_RGE0024H` footprint the
+  schematic names does not. Phase 3 makes a footprint from TI's land pattern with the corner pads,
+  or the board update will leave A1–A4 unplaced.
+- **The phantom feed resistors run warm in a sustained short.** A pin shorted to ground puts about
+  0.17 W in each 3.4 kΩ 1206 (two in series per leg), 67 % of its 0.25 W rating, against the usual
+  60 % derating. Acceptable for a fault that the player sees and removes; 1210 parts would bring it
+  to 34 % if v2 wants the margin.
+- **The XLR's Line mode loads its source with about 2 kΩ**, because the line path sits behind the
+  same phantom protection as the mic (1.2 kΩ bias per leg to the mid-rail). Balanced line sources
+  drive that easily; a weak consumer source would lose a little level. Measured in phase 6.
+- **10 µF X7R capacitors sit in the signal path** (the Line inputs' coupling, the codec's inputs).
+  Class 2 dielectrics distort when the voltage across them swings; here the DC across them is
+  small and the signal across them smaller, so the distortion should be under the codec's.
+  Measured in phase 6, with film or electrolytic parts as the fallback.
+- **The unbalanced outputs' 22 µF 16 V electrolytic coupling capacitors (C81, C92; C22387968) had
+  about 7,000 in stock** on the day: enough, but checked again before ordering.
+- **The bench DIP switch (SW1, SMXS-06K-TP, C5439765)** uses KiCad's generic 6-way slide footprint;
+  phase 3 checks it against the maker's drawing before placement.
+- **Seven parts are unfitted options**, marked DNP: the 12.288 MHz oscillator with its decoupling and
+  link (X1, C37, R22), and each balanced output's SHIELD-to-ground 0 Ω and 10 nF (R130, C82; R159,
+  C93). Phase 3 sets KiCad's DNP attribute on them before any BOM is made.
+- **Input 2's parts have the lower designators** (J3, J4, R36–R70, U7–U9, K1–K3; Input 1 is J5, J6,
+  R71–R105, U10–U12, K4–K6), because KiCad annotated the second sheet instance first. Cosmetic;
+  the silkscreen and the BOM say which channel a part belongs to by its sheet.
 
 ## What the board must prove
 

@@ -1,0 +1,728 @@
+(kicad_sch
+	(version 20250610)
+	(generator "konnect")
+	(generator_version "10.0")
+	(uuid "fbc1fdcb-b708-4420-b16b-abd21508af97")
+	(paper "A4")
+	(lib_symbols)
+	(global_label "PH_SW1"
+		(shape input)
+		(at 60 72.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2fb7e33e-99b5-4c5b-b56f-2d23465542a0")
+	)
+	(global_label "PH1_LED"
+		(shape output)
+		(at 60 75.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cdf9a298-4698-40a5-ba33-cde0ee506a32")
+	)
+	(global_label "LINE1"
+		(shape input)
+		(at 60 77.62 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b63c87fa-584c-4f99-9b70-b9da943fe062")
+	)
+	(global_label "ADC1_P"
+		(shape output)
+		(at 60 80.16 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "50f442ec-a15e-406f-a331-a388a53bc960")
+	)
+	(global_label "ADC1_M"
+		(shape output)
+		(at 60 82.7 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "70ab4fc1-73c2-4989-8683-59fb5f2b6f69")
+	)
+	(global_label "PLUG1"
+		(shape output)
+		(at 60 85.24 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0a7ae45b-dd31-494e-bcd0-702920973feb")
+	)
+	(global_label "PHP1"
+		(shape output)
+		(at 60 87.78 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5da968d4-a836-4a15-af15-d7cbc6539348")
+	)
+	(global_label "PH_SW2"
+		(shape input)
+		(at 130 72.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "bd31bae8-4374-4173-a371-2ff9e5151531")
+	)
+	(global_label "PH2_LED"
+		(shape output)
+		(at 130 75.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7495690f-5fc6-4126-b382-6663a8c881ba")
+	)
+	(global_label "LINE2"
+		(shape input)
+		(at 130 77.62 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a8859452-b9d1-490a-b817-236db49f787c")
+	)
+	(global_label "ADC2_P"
+		(shape output)
+		(at 130 80.16 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1d87311f-2620-43ee-b58f-edf675bc9a4f")
+	)
+	(global_label "ADC2_M"
+		(shape output)
+		(at 130 82.7 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "84ca65ab-68e7-4442-9f52-83aa56bc4f13")
+	)
+	(global_label "PLUG2"
+		(shape output)
+		(at 130 85.24 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0863a379-8ec7-493b-92e5-23f665d88268")
+	)
+	(global_label "PHP2"
+		(shape output)
+		(at 130 87.78 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "63a79de2-a4f8-42a4-ad11-f3591615dae3")
+	)
+	(global_label "DAC1_P"
+		(shape input)
+		(at 200 72.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6308c5df-259a-44e9-899c-35e903918013")
+	)
+	(global_label "DAC1_M"
+		(shape input)
+		(at 200 75.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "81446625-04a2-4342-9de5-4591b9ab444d")
+	)
+	(global_label "PAD1"
+		(shape input)
+		(at 200 77.62 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e9b558df-24c4-42ae-961b-58009b1c8fa4")
+	)
+	(global_label "DAC2_P"
+		(shape input)
+		(at 270 72.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "aca5d43d-70f0-443b-83dd-dff935f58059")
+	)
+	(global_label "DAC2_M"
+		(shape input)
+		(at 270 75.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "73f6b45b-3813-4b35-a6a9-71dbca1ab9c1")
+	)
+	(global_label "PAD2"
+		(shape input)
+		(at 270 77.62 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ec4968e8-9b7e-4039-a24f-ce2960dafa8e")
+	)
+	(sheet
+		(at 20 20)
+		(size 40 20)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "dde41648-7e4a-4366-8402-d67a8de1c68d")
+		(property "Sheetname" "HAT header and EEPROM"
+			(at 20 19.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "hat.kicad_sch"
+			(at 20 40.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 70 20)
+		(size 40 20)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "d7fe57ec-6706-44e0-92e8-872a41044fa6")
+		(property "Sheetname" "Power"
+			(at 70 19.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 70 40.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 120 20)
+		(size 40 20)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "bd991714-0473-44b4-b7b4-3d7656ef3327")
+		(property "Sheetname" "Phantom supply"
+			(at 120 19.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "phantom.kicad_sch"
+			(at 120 40.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 170 20)
+		(size 40 20)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "e42133dd-bc6b-438a-8ff8-3977009bce30")
+		(property "Sheetname" "Codec"
+			(at 170 19.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "codec.kicad_sch"
+			(at 170 40.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 220 20)
+		(size 40 20)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "debb6908-8062-4f75-b625-c2f6cdf2cbb0")
+		(property "Sheetname" "Panel switches"
+			(at 220 19.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "panel.kicad_sch"
+			(at 220 40.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 70)
+		(size 40 40)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "be979e11-45f4-4fc1-97e0-a1cd49caaeea")
+		(property "Sheetname" "Input 1"
+			(at 20 69.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "input.kicad_sch"
+			(at 20 110.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "PH_SW" input
+			(at 60 72.54 0)
+			(uuid "5acd1bee-d411-4e57-a12c-e9f05489c16e")
+		)
+		(pin "PH_LED" output
+			(at 60 75.08 0)
+			(uuid "8c1bcb98-244e-4482-a461-cdd36daacbb1")
+		)
+		(pin "LINE" input
+			(at 60 77.62 0)
+			(uuid "1b8f4049-398b-43a7-9319-eeec7d72d9ba")
+		)
+		(pin "ADC_P" output
+			(at 60 80.16 0)
+			(uuid "bea7f54b-4ac0-4b35-a24d-36de6e071cb1")
+		)
+		(pin "ADC_M" output
+			(at 60 82.7 0)
+			(uuid "5bb12407-0b06-4322-aed1-6a21be44eb66")
+		)
+		(pin "PLUG" output
+			(at 60 85.24 0)
+			(uuid "c7862275-924a-4cbd-953c-96e783cb2fda")
+		)
+		(pin "PH_PRESENT" output
+			(at 60 87.78 0)
+			(uuid "1b2fd914-e7dc-48dc-84a4-477950c100ed")
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 90 70)
+		(size 40 40)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "ba553acb-b1d7-4d53-b8e1-6fc1bd3defc6")
+		(property "Sheetname" "Input 2"
+			(at 90 69.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "input.kicad_sch"
+			(at 90 110.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "PH_SW" input
+			(at 130 72.54 0)
+			(uuid "b8728bfb-78e6-4561-ac8f-304aeb0f0999")
+		)
+		(pin "PH_LED" output
+			(at 130 75.08 0)
+			(uuid "288fcd4a-351b-4ca6-920b-5db611a15b50")
+		)
+		(pin "LINE" input
+			(at 130 77.62 0)
+			(uuid "b7209621-0ab3-4d43-915f-3c19390a17ff")
+		)
+		(pin "ADC_P" output
+			(at 130 80.16 0)
+			(uuid "3d9a6623-13be-408c-b5a4-b5e7675b8798")
+		)
+		(pin "ADC_M" output
+			(at 130 82.7 0)
+			(uuid "008052cc-a732-43c1-86d7-36c8ebc11e11")
+		)
+		(pin "PLUG" output
+			(at 130 85.24 0)
+			(uuid "2ccb4701-c099-40d8-aadf-a05639d9be32")
+		)
+		(pin "PH_PRESENT" output
+			(at 130 87.78 0)
+			(uuid "53d3285a-0d8d-4be9-9299-3ac355500701")
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 160 70)
+		(size 40 30)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "553f9d13-8dce-4dd3-bb94-6aa20b8a66f2")
+		(property "Sheetname" "Output 1"
+			(at 160 69.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "output.kicad_sch"
+			(at 160 100.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DAC_P" input
+			(at 200 72.54 0)
+			(uuid "3c9e5bbc-8142-4f73-88b7-c276fab19a98")
+		)
+		(pin "DAC_M" input
+			(at 200 75.08 0)
+			(uuid "6ea36f93-d64b-4929-9c7b-4b535531c7b2")
+		)
+		(pin "PAD" input
+			(at 200 77.62 0)
+			(uuid "4ee32620-c3f7-4d94-a49e-127ad1cff6eb")
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 230 70)
+		(size 40 30)
+		(fields_autoplaced)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "56d4081d-af2e-478a-954b-ac988e47f15d")
+		(property "Sheetname" "Output 2"
+			(at 230 69.365 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "output.kicad_sch"
+			(at 230 100.635 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DAC_P" input
+			(at 270 72.54 0)
+			(uuid "82dd3ab0-9bef-468d-a93e-60f96263ad24")
+		)
+		(pin "DAC_M" input
+			(at 270 75.08 0)
+			(uuid "843cf45e-9848-4ac5-b165-23bb7f7bb456")
+		)
+		(pin "PAD" input
+			(at 270 77.62 0)
+			(uuid "b4fed616-c0c4-43d2-bd33-cf21685918d8")
+		)
+		(instances
+			(project "pedal-codec"
+				(path "/fbc1fdcb-b708-4420-b16b-abd21508af97"
+					(page "10")
+				)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)
