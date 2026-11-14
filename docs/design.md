@@ -3,6 +3,10 @@
 Started 2026-11-11. This is the design as far as it has been reasoned, with every open question
 marked **Open**. [plan.md](plan.md) is the order in which they are settled and the board is made.
 
+**Since 2026-11-14 the board being made is the box board**, for the pedal's 1590DD case:
+[box-board.md](box-board.md). This document stays the design of the full-size HAT it is cut from,
+and of every stage the two share.
+
 ## What was asked for (owner, 2026-11-11)
 
 - A board like Raspberry Pi's [Codec Zero](https://www.raspberrypi.com/documentation/accessories/audio.html)

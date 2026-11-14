@@ -5,20 +5,20 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. The owner reviews phase 2: the schematic as a PDF, [hardware/pedal-codec.pdf](../hardware/pedal-codec.pdf),
-   with [schematic-review.md](schematic-review.md) and design.md's "Phase 2 schematic".
-2. Then phase 3, the layout, starting with two things the schematic leaves to it: a TAC5212
-   footprint with the RGE package's four corner pads, and KiCad's DNP attribute on the seven
-   unfitted parts.
+1. **The owner answers the box board's questions**, Q1–Q8 in [box-board.md](box-board.md)
+   (the mic connector, phantom, mute or bypass, the Pico as module or chip, the MIDI socket, the
+   encoder and button parts), and takes the measurements it lists, with the new footswitches
+   fitted.
+2. Then phase 3: the fit, drawn in `pedal.project`'s case layout.
 
-Last changed 2026-11-14: phase 2's schematic done, reviewed, then redrawn so every sheet reads as a circuit (wires in signal order, the netlist unchanged), waiting for the owner. Seven sheets
-in KiCad 10, every symbol with `LCSC` and `MPN`, ERC clean, the netlist checked across sheets, and
-the kicad-happy analysis and its ngspice run triaged with every finding answered. The review added
-one capacitor (C94, on the load switch's output) and checked every custom symbol's pinout against
-its maker's datasheet; the relays became Omron G6K-2F-Y, whose pinout is published. Before that,
-2026-11-11: phase 1 done (the TAC5212 brought up from userspace over I2C, every part with its
-LCSC number and stock, the phantom supply a TPS61170 with a voltage doubler, and ngspice for each
-mode, the supply rejection and the phantom thump and faults).
+Last changed 2026-11-14: **the target changed to a board for the 1590DD box** (the owner, after
+running the pedal in that case the same day), specified in [box-board.md](box-board.md). Phases 3
+onward are rewritten for it. The full-size HAT's phase 2 schematic, reviewed and redrawn as a
+circuit (`a67618f`, pushed), is the source its sheets are cut from. Before that, 2026-11-14:
+phase 2's schematic, seven sheets in KiCad 10, every symbol with `LCSC` and `MPN`, ERC clean, the
+kicad-happy analysis and its ngspice run triaged. 2026-11-11: phase 1 (the TAC5212 brought up from
+userspace over I2C, every part with its LCSC number and stock, ngspice for each mode, the supply
+rejection and the phantom thump and faults).
 
 ## Tools
 
@@ -80,65 +80,92 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   [schematic-review.md](schematic-review.md) the review. The independent `kicad-design-review-agent`
   pass moves to phase 3, where it can see the layout too.
 
-## Phase 3: layout
+## Phase 3: the fit
 
-- The HAT+ outline (65 × 56.5 mm, M2.5 holes on 58 × 49 mm), the 40-pin header, the input, output
-  and panel connectors along the edges, clear of the Pi 5's camera, display and PCIe connectors,
-  with 16 mm standoffs so the Active Cooler fits beneath it. Nine connectors now (four input,
-  four output, the panel's) take about 110 mm of edge in XH's 2.5 mm pitch, against about 120 mm
-  of edge the header leaves free: place them first, then everything else.
-- **4 layers**: signal, unbroken ground, power, signal. The boost converters in the corner
-  furthest from the inputs, their switching loops small, the 1 MΩ nodes short and guarded. One
-  ground plane, not split; analogue and digital kept apart by placement.
-- DRC against JLCPCB's 4-layer rules; the `emc` skill's check; a 3D export checked against a Pi 5
-  model.
-- **Done when** DRC is clean and the owner has reviewed the layout (plots and the 3D view).
+The box board's outline, found in the case before anything is drawn in KiCad.
 
-## Phase 4: order v1
+- The owner's measurements (box-board.md, "Measurements needed") and answers to Q1–Q8.
+- `../pedal.project/enclosure/src/medium_layout.py` gains the rotary controller, the button, the
+  new footswitches' depth, the USB-C, the board's outline with its pillar notches and any cut-outs,
+  the ribbon's path from the Pi's header, the standoffs, and, if they fit, the mic, MIDI and
+  EXT FS sockets. Its section view gains the heights: the floor, standoffs, board, the tallest
+  parts, the footswitches. That is a `pedal.project` change, committed there.
+- An area budget: the blocks the board keeps (box-board.md, "What is reused"), each with a
+  footprint estimate from the phase 2 parts, against the outline. If it doesn't fit, the order of
+  retreat is: the right-hand extension (R3), parts on both sides, then the Pico off the board.
+- A 1:1 print of the outline, cut from card and tried in the case by the owner with the Pi,
+  screen, footswitches, encoder and button fitted.
+- **Done when** the owner has tried the card in the case and the outline, the connector
+  positions and the height limits are written into box-board.md.
+
+## Phase 4: schematic for the box
+
+- In `hardware/`, through Konnect: the phase 2 project cut down to the box board, sheet by sheet
+  as box-board.md's table says. One input sheet for the guitar path and one for the mic path,
+  one output sheet for both channels with the one relay, a controls sheet (the Pico, or the
+  RP2350 with its flash, crystal and supply; FS1–FS3, EXT FS, MIDI, encoder, button, the Pi's
+  reset and SWD lines), the box header for the ribbon, and phantom only if Q2 keeps it. Drawn as
+  circuits from the start, as the redraw left them.
+- Every new part with `LCSC` and `MPN` and stock checked (the optocoupler, the box header, the
+  RP2350 and its parts or the Pico's footprint, the extra XH sizes).
+- ngspice for what changed: the right channel into a short (R9), the bypass relay's switching
+  transient if Q3 chooses bypass, and the MIDI input's opto at 31 250 baud.
+- The header's pin map rewritten (design.md, "Header use"), with the UART, SWD and reset lines
+  added; and the Pico's pin map, which `../pedal.project/firmware/` will follow.
+- ERC clean, netlist reviewed, the kicad-happy analysis triaged, as in phase 2.
+- **Done when** the owner has reviewed the schematic as a PDF.
+
+## Phase 5: layout
+
+- The outline from phase 3; standoff holes for the base plate; the box header at the end nearest
+  the Pi; the XH connectors on the board's edges, each placed for its wire's shortest clean run
+  (R18–R20); the height limit as a keep-out under the footswitches.
+- **4 layers**: signal, unbroken ground, power, signal. The 1 MΩ node short and guarded; the
+  analogue end free of digital traces on every layer; the Pico (or RP2350) and its crystal at the
+  far end from the inputs.
+- DRC against JLCPCB's 4-layer rules; the `emc` skill's check; the independent
+  `kicad-design-review-agent` pass, now that it can see the layout; a STEP export set into the
+  case model to check heights and the ribbon's path.
+- **Done when** DRC is clean and the owner has reviewed the plots and the 3D view in the case.
+
+## Phase 6: order
 
 - The fab package (Konnect `manufacturing`, or the `bom` and `jlcpcb` skills): Gerbers, drill,
-  BOM with LCSC numbers, placement file, checked against JLCPCB's assembly rules.
-- JLCPCB, 4-layer, 5 boards, assembled on the top side (the codec's QFN needs a stencil and reflow
-  anyway); the through-hole header and XH connectors either by JLCPCB or by hand. PCBWay is the
-  fallback if a part is out of stock at LCSC.
-- Optionally, in parallel: TI's TAC5212 evaluation module, to bring the codec and its driver up
-  on a Pi before the boards arrive. With the driver the one new risk, this is worth more than it
-  was for the TAC5242.
+  BOM with LCSC numbers, placement file, KiCad's DNP attribute set on every unfitted part.
+- JLCPCB, 4-layer, 5 boards, assembled on the top side; the box header and XH connectors by
+  JLCPCB or by hand; the Pico module by hand if Q5 keeps the module. Also the ribbon (40-way,
+  2.54 mm, the length phase 3 measured) and the standoffs.
 - **Done when** the owner has the quote and has placed the order. Agents never place it.
 
-## Phase 5: bring-up
+## Phase 7: bring-up
 
-On piv, the bench device, not vip (vip's WM8960 stays wired as it is).
+On piv, the bench device, first, then in the box on vip.
 
-- Power before the Pi: the board on a bench supply, every rail measured, the phantom rail with
-  phantom off and on, no part warm.
-- EEPROM: written with Raspberry Pi's `eepmake` and `eepflash.sh` (WP held low at its test
-  point), naming the overlay.
-- The codec answering at 0x50 on I2C1, configured by a start-up tool that writes its registers
-  over `/dev/i2c-1` (design.md, "Linux", route 2). The driver (route 1) follows if ALSA's mixer
-  controls are wanted.
-- The overlay in `overlay/`, then playback, capture, and an analogue loopback at 48 kHz.
-- **Done when** audio passes from input to output through the Pi, and the board identifies
-  itself through `/proc/device-tree/hat/`.
+- Power before the Pi: rails on a bench supply, nothing warm; the Pi's standby (5 V on, 3.3 V
+  off) back-powers nothing, the Pico included.
+- EEPROM written (`eepmake`, `eepflash.sh`); the codec at 0x50, configured from userspace
+  (design.md, "Linux", route 2); the overlay in `overlay/`; playback, capture, loopback.
+- The Pico programmed from the Pi over SWD; its firmware's pin map changed in
+  `../pedal.project/firmware/`; the footswitches, EXT FS, encoder, button and MIDI each producing
+  their UART messages.
+- In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
+  overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
+  say. They are decided with the owner then, not before.
+- **Done when** the pedal plays through the board in the box, with every control working.
 
-## Phase 6: measure
+## Phase 8: measure in the box
 
-Evidence into `bench-results/<date>-<what>/`, as the pedal does.
+Evidence into `bench-results/<date>-<what>/`.
 
-- Plug detection and every switch, read by the Pi, in each combination; phantom present only on
-  the XLR pins, and never with its switch off, including through the Pi's standby and reboot.
-- Noise floor and headroom per input mode, phantom off and on, and the Mic path's equivalent input
-  noise with 150 Ω on its input.
-- THD+N and frequency response, in and out.
-- The balanced outputs: the two legs' impedances matched, level at full scale with the pad in and
-  out, and phantom power
-  switched on, left on and hot-plugged (a phantom-powered input, such as the SSL 2+'s, as the
-  pedal plans).
-- Round-trip latency, linear-phase against low-latency filters, Pi-master against codec-master.
-- Interference from the Pi: its 5 V ripple and its load steps, seen at the outputs.
-- **Done when** each number is in `bench-results/` and set against the datasheet's.
+- Noise floor and headroom at the guitar input and the mic input, with the screen lit, the fans
+  running, the Pi under load, and each control and MIDI in use: the box is the test, not the
+  bench.
+- The case's ground bond: hum with it, without it, and in another place (Q6).
+- The right channel shorted by a mono plug: the left channel unaffected.
+- The bypass or mute at power-up, reboot, standby and power loss.
+- **Done when** each number is in `bench-results/` and set against phase 1's predictions.
 
-## Phase 7: v2
+## Phase 9: what next
 
-What v1 taught, and the step down to Pi Zero size if the options can go. Whether the pedal takes
-the board is decided here, with the owner, and then lands in `pedal.project`'s plan.
+What the box taught; whether the bigger case's board (two combo inputs, balanced outputs,
+phantom) is still wanted, and if so it starts from the phase 2 schematic and this board's lessons.

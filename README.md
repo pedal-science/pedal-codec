@@ -14,6 +14,10 @@ ADC, 120 dB DAC):
 - a full-size HAT+, powered from the Pi's 5 V
 - power, I2S audio and control through the Pi's 40-pin header, with a HAT+ ID EEPROM
 
+**Now being made for the pedal's 1590DD case** as the box board: one guitar input, one mic
+input, a stereo output and the pedal's controls on a strip under the footswitches, joined to the Pi
+by a ribbon. [docs/box-board.md](docs/box-board.md) is its specification.
+
 It is at the design stage: [docs/design.md](docs/design.md) is the design so far and its open
 questions, and [docs/plan.md](docs/plan.md) is the route to boards made and tested.
 

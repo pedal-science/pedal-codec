@@ -16,6 +16,7 @@ repository owns what.
 
 | Path | What it is |
 |---|---|
+| `docs/box-board.md` | **The current target** (2026-11-14): the requirements for the board that fits the pedal's 1590DD case, cut down from the full-size HAT, with the owner's open questions |
 | `docs/design.md` | The requirements, the codec (TAC5212) and what its datasheet means for the board, the board's blocks, and the open questions |
 | `docs/plan.md` | The phases from requirements to tested boards, each with its done-when, and the tools each uses. Start at "Next session starts with" |
 | `sim/` | The ngspice decks for the analogue stages and their results, once written (phase 1) |
