@@ -1,8 +1,8 @@
 # pedal-codec: the box board (1590DD)
 
 Requirements and specification, 2026-11-14. The owner's brief of the same day, written down, with
-what follows from it and the questions it leaves. [plan.md](plan.md) is the route from here to a
-board in the box.
+what follows from it and the owner's answers to the questions it raised (all decided the same
+day). [plan.md](plan.md) is the route from here to a board in the box.
 
 ## Why this board
 
@@ -37,8 +37,8 @@ the rear wall toward the player, both in mm.
 | Output jack | Rear wall, x ≈ 120, ¼″ TRS (wired mono today) | fixed |
 | Guitar input jack | Rear wall, x ≈ 158 | fixed |
 | USB-C extension | Rear wall, to the Pi's USB-C | fixed |
-| Rotary controller | In the area the drawing gives the WM8960 (x ≈ 128–153, y ≈ 20–61). Full depth, from the face to the floor. Knob about 25 mm across, nearly flush with the face | fixed, not yet on the drawing |
-| Lighted momentary button | Beside the rotary controller, 20–30 mm between centres. Bulky inside | fixed, not yet on the drawing |
+| Rotary controller | A KY-040 module (an EC11-type encoder, 20 detents, with push switch, on a small board with a 5-pin header) in the area the drawing gives the WM8960 (x ≈ 128–153, y ≈ 20–61). Full depth, from the face to the floor. The knob, The Pi Hut's 35 mm scrubber knob, is 34.7 mm across and 10.5 mm tall, nearly flush with the face | fixed, not yet on the drawing |
+| Lighted momentary button | The Pi Hut's 16 mm rugged metal pushbutton with green LED ring (momentary; NO, NC and common; LED for 3–6 V with its resistor built in). Beside the rotary controller: with the knob's 17.4 mm radius and the button's 8 mm hole, its centre is at least about 27 mm from the encoder's. Bulky inside; depth not published | fixed, not yet on the drawing |
 | Two small fans | On the Pi's fan header, not mounted yet | not this board |
 
 ## Requirements
@@ -73,66 +73,80 @@ the rear wall toward the player, both in mm.
 
 | Connector | XH | Pins |
 |---|---|---|
-| GUITAR IN | 3-pin | sleeve, tip, the jack's switch (plug detect; optional, see Q4) |
-| MIC IN | 3-pin | XLR 1 (ground), XLR 2 (hot), XLR 3 (cold) |
+| GUITAR IN | 3-pin | sleeve, tip, the jack's switching contact (plug detect) |
+| MIC IN | 3-pin | ground (XLR 1 and the ¼″ sleeve), hot (XLR 2 and tip), cold (XLR 3 and ring) |
 | OUT | 3-pin | sleeve, tip (left), ring (right) |
 | FS1, FS2, FS3 | 2-pin each | switch, ground |
 | EXT FS | 3-pin | sleeve, tip (switch A), ring (switch B) |
-| MIDI IN | 3-pin | the socket's two current-loop pins (DIN 4 and 5, or TRS tip and ring), and its shield, which a MIDI input leaves unconnected |
-| ENCODER | 5-pin | A, B, common, push switch, its common (to match the part; see Q8) |
-| BUTTON | 4-pin | switch, switch, LED +, LED − |
+| MIDI IN | 3-pin | the 3.5 mm TRS socket's tip (current source, DIN 4) and ring (sink, DIN 5), and its sleeve (shield, DIN 2), which a MIDI input leaves unconnected |
+| ENCODER | 5-pin | in the KY-040's own header order: CLK, DT, SW, + (3.3 V), GND |
+| BUTTON | 4-pin | NO, common, LED +, LED − (the NC contact is unused) |
 | Pi | 2 × 20 box header | the 40-way ribbon |
 
 ### Audio
 
-- **R7. One guitar input**, on the rear jack, through the instrument path phase 1 designed: 1 MΩ
+- **R7. One guitar input**, on the rear jack (a switching jack, so the board knows when a plug is
+  in), through the instrument path phase 1 designed: 1 MΩ
   to the mid-rail, a follower, then the differential driver into the codec's input 1. Line-level
   sources work on the same input up to its full scale, +6.1 dBu, which a separate Line mode would
   not improve on enough to be worth a switch. **No mode relays**: one jack, one path.
 - **R8. One mic input**, on the right-hand wall, near the guitar input and away from the output,
-  through phase 1's mic preamp (about 20 dB, OPA1612) into the codec's input 2. The connector and
-  whether there is phantom are Q1 and Q2.
+  through phase 1's mic preamp (about 20 dB, OPA1612) into the codec's input 2. **The socket is a
+  combo XLR/¼″** (decided): it reserves the space the biggest option needs, so if the wall turns
+  out too low for it, the fallback takes less room, never more. Both halves are wired in parallel
+  (XLR 2 and the tip hot, XLR 3 and the ring cold, XLR 1 and the sleeve ground), so a balanced
+  mic on either half, or an unbalanced one on the ¼″, reaches the same differential preamp.
+  **No phantom power** (decided): the input is for dynamic mics and mics that power
+  themselves.
 - **R9. A stereo output** on the existing TRS jack: left on the tip, right on the ring, each from
   phase 1's unbalanced output stage. A mono (TS) plug shorts the ring to the sleeve, so the right
   channel has to drive a dead short indefinitely without harm or audible effect on the left. Its
   100 Ω series resistor and the OPA1656's current limit are checked for that.
-- **R10. Silence at power-up, or a bypass** (Q3). One DPDT relay, de-energised at rest, serves
-  both channels:
-  - as a mute, it ties both outputs to the mid-rail until software releases it, as the phase 2
-    schematic does;
-  - or as the boot bypass the pedal's hardware handoff calls for, it connects the guitar jack
-    straight to the output's tip at rest, so the pedal passes a dry signal while it boots and if
-    it fails.
+- **R10. A bypass at rest** (decided). One DPDT relay, de-energised at rest, serves both
+  channels. At rest one pole joins the guitar jack's tip to the output's tip, and the other holds
+  the right channel at ground through a resistor. So the pedal passes the dry guitar while it
+  boots, in the Pi's standby, and if anything fails. Energised, the poles take the left and right
+  output stages instead. The RP2350 drives it. It energises the relay only once the Pi reports
+  audio running over the UART, and drops it when the Pi's reports stop, because the RP2350 stays
+  powered through the Pi's standby and reboots. The layout keeps the bypass's trace from the input
+  end to the output short and guarded, since it carries the raw 1 MΩ signal.
 - **R11. No balanced outputs, no pad, no panel switches, no XLR output**: the box has no room for
   them. The phase 2 sheets for them are dropped.
 
-### Controls (the Pico)
+### Controls (the RP2350)
 
-- **R12. The Pico moves onto the board** (Q5). Everything it serves comes in on the board's XH
-  connectors: FS1–FS3, EXT FS, MIDI IN, the encoder and the button. It talks to the Pi over the
-  ribbon's UART (GPIO 14/15, as now). This keeps the pedal's rule that physical controls belong to
+- **R12. The Pico's chip moves onto the board** (decided): an RP2350 with its QSPI flash, crystal,
+  core regulator and 3.3 V supply, placed by JLCPCB, rather than a Pico module. It needs about a
+  quarter of the area, and it has no radio (the pedal's wireless is the Pi's). Its USB pins go to
+  test pads, for the bootloader on the bench. Everything it serves comes in on the board's XH
+  connectors: FS1–FS3, EXT FS, MIDI IN, the encoder, the button and the bypass relay. It talks
+  to the Pi over the ribbon's UART (GPIO 14/15, as now). This keeps the pedal's rule that physical controls belong to
   the Pico and that footswitch and MIDI events become identical UART messages
   (`../pedal.project/AGENTS.md`).
-- **R13. The Pi can reset and program the Pico through the ribbon** (RUN, SWDIO and SWCLK to three
+- **R13. The Pi can reset and program the RP2350 through the ribbon** (RUN, SWDIO and SWCLK to three
   Pi GPIOs), so a firmware update never needs a USB cable inside a closed case.
-- **R14. The Pico runs from the Pi's 5 V**, which stays up through a Pi reboot. Its signals to
-  the Pi's 3.3 V pins are series-resistor or buffer isolated, so the Pico, powered while the Pi
-  is in standby, can't back-power the Pi's GPIO (HAT+).
-- **R15. MIDI in** through an optocoupler (6N138 or H11L1 class) into a Pico UART at 31 250 baud,
+- **R14. The RP2350 runs from the Pi's 5 V**, through its own 3.3 V regulator, so it stays up
+  through a Pi reboot and standby. Its signals to the Pi's 3.3 V pins are series-resistor or
+  buffer isolated, so it can't back-power the Pi's GPIO while the Pi is in standby (HAT+).
+- **R15. MIDI in** on a 3.5 mm TRS socket (MIDI Type A, decided; a DIN cable needs the usual
+  adapter), through an optocoupler (6N138 or H11L1 class) into an RP2350 UART at 31 250 baud,
   with the socket's ground left floating, as the MIDI specification requires. That keeps the
   controller's ground out of the audio ground. MIDI out and thru are not needed.
 - **R16. An external dual footswitch** on a ¼″ TRS jack: tip A, ring B, sleeve ground, the
-  convention of the common two-button switches. Both are Pico inputs with pull-ups and RC
+  convention of the common two-button switches. Both are RP2350 inputs with pull-ups and RC
   debounce, the same as the onboard footswitches.
-- **R17. The lighted button's LED is driven DC**, or PWM'd well above audio (≥ 100 kHz), never at
-  a few hundred Hz, because it sits beside the guitar input. The encoder's and switches' edges
-  are RC-filtered at the connector.
+- **R17. The lighted button's LED** runs from 5 V (its built-in resistor suits 3–6 V), switched on
+  the low side by a transistor from an RP2350 pin, and driven DC: on or off, or PWM'd well above
+  audio (≥ 100 kHz), never at a few hundred Hz, because it sits beside the guitar input. **The
+  encoder module is powered from 3.3 V**, not 5 V: its 10 kΩ pull-ups go to its + pin, and the
+  RP2350's pins aren't 5 V tolerant. If the module's SW pull-up isn't fitted, as on many KY-040s,
+  the board supplies one. The encoder's and switches' edges are RC-filtered at the connector.
 
 ### Noise and placement
 
 - **R18. The board is arranged by signal.** The guitar and mic inputs are at its right-hand end,
   under their jacks. The codec and the analogue supply are right of centre. The output connector
-  is near the output jack (x ≈ 120). The ribbon header, the Pico and the controls are at the
+  is near the output jack (x ≈ 120). The ribbon header, the RP2350 and the controls are at the
   left. The 1 MΩ node is short and guarded, with ground pour around it and nothing digital
   crossing beneath it.
 - **R19. At least 30 mm between the input connectors and the output connector** on the board,
@@ -142,7 +156,8 @@ the rear wall toward the player, both in mm.
   along the front wall.
 - **R21. One ground plane**, with analogue and digital kept apart by placement, not a split, as
   phase 3 already planned. **The case is bonded to circuit ground at one point**, chosen and then
-  measured (Q6).
+  measured (decided): one bond near the inputs, and phase 8 compares it with none and with one
+  elsewhere.
 - **R22. MIDI and EXT FS sockets only if they fit without crowding the inputs** (the owner's
   condition). Both carry DC or isolated signals, so noise is not what limits them; the space for a
   jack's body inside the case is. Phase 3 finds out. The board carries their connectors either
@@ -158,12 +173,12 @@ As the phase 2 schematic, less what the box drops:
 | 3.3 V IOVDD | Pi 3.3 V (over the ribbon) | Codec IOVDD, EEPROM, logic pull-ups |
 | Analogue 5 V | Pi 5 V, TPS22917 load switch, 10 µH and 110 µF | Buffer, preamp, FDAs, output stage, mid-rail |
 | Relay coil | Pi 5 V, own filter branch | The one mute/bypass relay |
-| Pico | Pi 5 V, through a Schottky to VSYS | The Pico and the control inputs |
-| +48 V | Only if Q2 keeps phantom | Mic input |
+| RP2350 3.3 V | Pi 5 V, its own LDO (the RP2350's core regulator from that) | The RP2350, its flash, the control inputs' pull-ups, the encoder module |
+| Button LED | Pi 5 V, switched | The button's LED ring |
 
-The worst case is about 250 mA from the Pi's 5 V without phantom: op-amps ≈ 60 mA, the codec
-≈ 30 mA, one relay coil ≈ 30 mA, the Pico ≈ 30 mA, and margin. Phantom adds up to about 125 mA
-for one input. The ribbon has two 5 V conductors and seven grounds, which is plenty.
+The worst case is about 250 mA from the Pi's 5 V: op-amps ≈ 60 mA, the codec ≈ 30 mA, one relay
+coil ≈ 30 mA, the RP2350 ≈ 30 mA, the button's LED ≈ 20 mA, and margin. The ribbon has two 5 V
+conductors and seven grounds, which is plenty.
 
 ## What is reused from phase 2, and what is not
 
@@ -173,66 +188,42 @@ for one input. The ribbon has two 5 V conductors and seven grounds, which is ple
 | Power | Kept, as above |
 | Codec | Kept: the TAC5212, its input filters, decoupling, I2S series resistors |
 | Input channel (×2) | One instance, split: the instrument path for the guitar input, the mic preamp for the mic input. KA, KB and K for line, the combo jack and the plug-to-path logic go |
-| Phantom supply | Only if Q2 keeps it; otherwise dropped |
+| Phantom supply | Dropped |
 | Output channel (×2) | One stage per channel for left and right; the balanced followers, their protection and the pad go; one relay for both |
-| Panel | Replaced by a controls sheet: the Pico, FS1–FS3, EXT FS, MIDI, encoder, button |
+| Panel | Replaced by a controls sheet: the RP2350 and its parts, FS1–FS3, EXT FS, MIDI, encoder, button, the bypass relay's driver |
 
 The values and the simulations of phase 1 still hold for every stage that is kept. The gains,
 noise, headroom and supply rejection are unchanged, because the stages are the same circuits.
 
-## Questions for the owner
+## Decided (owner, 2026-11-14)
 
-Each has a recommendation; none blocks phase 3's measuring, but Q1–Q5 block the schematic.
-
-- **Q1. The mic connector.** A full XLR on the right-hand wall needs a flange about 26 × 31 mm on
-  a wall about 33 mm tall inside. That might fit, centred, but only just. The alternatives are a
-  ¼″ TRS socket (balanced, mic-level), or a combo jack, which is the same size problem.
-  *Recommendation:* measure the wall in phase 3. Use an XLR if it fits with the lid and pillars
-  clear, and a TRS socket if not.
-- **Q2. Phantom power.** It costs the boost, the doubler, the capacitance multiplier and the
-  feed: about 30 parts and 10 cm². It also puts a 1.2 MHz switcher in a small aluminium box
-  beside a 1 MΩ guitar input. The project's rule also makes phantom a deliberate physical switch,
-  which would mean another hole in the case or a switch inside it. *Recommendation:* no phantom on
-  the box board, so the mic input is for dynamic mics (and active ones with their own power). It
-  can come back on the bigger-case board.
-- **Q3. Mute or bypass at rest.** *Recommendation:* bypass. That is a relay that, de-energised,
-  joins the guitar jack's tip to the output's tip and grounds the right channel, released by the
-  Pico once the Pi reports audio running. It is what makes the pedal gig-usable (the hardware
-  handoff's own words). The cost is the guitar signal crossing the board from input end to
-  output, which the layout has to keep clean.
-- **Q4. Plug detect on the guitar jack.** It lets the pedal mute or idle with nothing plugged in.
-  It needs a switched jack, the one you have may not be. *Recommendation:* carry the pin and fit
-  it if the jack has the contact.
-- **Q5. The Pico on the board, as a module or as a chip.** A Pico 2 module soldered flat by its
-  castellations (hand-soldered; JLCPCB doesn't place modules) costs 51 × 21 mm of a strip that is
-  only about 25 mm deep. An RP2350 with its flash, crystal and regulator, placed by JLCPCB, costs
-  about a quarter of that area. *Recommendation:* the chip, unless the module's area turns out to
-  be free. The Pico 2 W's radio isn't used (the pedal's wireless is the Pi's), and a 2.4 GHz
-  transmitter next to the audio is better left out either way.
-- **Q6. Case grounding.** The jacks' metal bodies bond their sleeves to the case. One bond
-  between the case and circuit ground, near the inputs, is the usual answer, and phase 8
-  measures it.
-- **Q7. MIDI socket type, if it fits.** A 5-pin DIN needs about 20 mm of wall and as much depth.
-  A 3.5 mm TRS (MIDI Type A, with an adapter for DIN cables) needs a third of that and is what
-  small pedals use. The pedal's decision D6 says DIN. *Recommendation:* TRS Type A in the 1590DD.
-  The board's XH is the same for both.
-- **Q8. The rotary controller and the button: which parts?** The encoder's pinout (an EC11-style
-  with a push switch?) and the button's LED (voltage, current, and whether it has its own
-  resistor) set the ENCODER and BUTTON connectors and the LED's driver.
+1. **The mic socket is a combo XLR/¼″**, so the space inside is planned for the largest option
+   (R8).
+2. **No phantom power** on the box board (R8). It can come back on the bigger case's board.
+3. **Bypass at rest**, released by the RP2350 once the Pi's audio runs (R10).
+4. **The guitar jack is a switching jack**; the board reads its plug detect (R7).
+5. **The RP2350 goes on the board as a chip**, not a Pico module (R12).
+6. **One case bond to circuit ground, near the inputs**, measured in phase 8 (R21).
+7. **MIDI in is a 3.5 mm TRS socket**, Type A, if there is room for it (R15, R22). This changes
+   the pedal's D6, which said DIN, for this case.
+8. **The controls:** the encoder is a KY-040 module, the knob The Pi Hut's 35 mm scrubber, and the
+   button The Pi Hut's 16 mm rugged metal pushbutton with green LED ring (the table above, R17).
 
 ## Measurements needed (phase 3)
 
 From the owner, in the case, with the new footswitches fitted:
 
 - the inside depth, and the height under a fitted footswitch to the floor;
-- the rotary controller's and the button's centres, their body diameters inside the case, and
-  how far down they reach;
+- the rotary controller's and the button's centres, how far down each reaches (the KY-040's board
+  and header, the button's body and lugs, neither published), and the KY-040 module's outline as
+  mounted;
 - the rear jacks' and the USB-C's centres, and how far their bodies reach in (in y) and down
   (from the face);
 - the front strip's free depth: from the Pi's front edge (or the ribbon socket on its header) to
   the front wall, and where the header is in x;
-- the right-hand wall: the free height and length, for Q1;
-- the left-hand and front walls in the front strip, for Q7's sockets and the EXT FS jack;
+- the right-hand wall: the free height and length, for the combo socket (a Neutrik NCJ6FI-H
+  class part has a flange about 26 × 31 mm and reaches about 31 mm in);
+- the left-hand and front walls in the front strip, for the MIDI and EXT FS sockets;
 - whether the base plate can take standoffs (drilled, with countersunk screws), and where its
   own screws and feet are.
 
