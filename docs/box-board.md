@@ -30,7 +30,7 @@ the rear wall toward the player, both in mm.
 
 | Item | Where | Status |
 |---|---|---|
-| Hammond 1590DD | 178.26 × 110.26 mm inside, about 33 mm deep; six full-height screw pillars (four corners, the centres of the rear and front edges), about 8 mm across | fixed |
+| Hammond 1590DD | 178.26 × 110.26 mm inside, 30 mm deep (measured; the drawing says about 33); six full-height screw pillars (four corners, the centres of the rear and front edges), about 8 mm across | fixed |
 | 4.3″ DSI QLED screen ([Waveshare](https://www.waveshare.com/wiki/4.3inch_DSI_QLED)) | 99 × 59 mm cutout, 10 mm from the left and 9 mm from the rear | fixed |
 | Pi 5 (vip) | On the screen's standoffs, x 16.5–101.5, y 10.5–66.5. Screen, standoffs and Pi take about 30 of the 33 mm. Its 40-pin header is along its front edge | fixed |
 | Footswitches FS1–FS3 | 69 mm pitch, centres 29 mm from the front wall (y ≈ 81), at x ≈ 20, 89, 158. The ones on order go about **10 mm** into the case | fixed, new parts due |
@@ -260,23 +260,69 @@ phase 3 has measured the walls, from a UK distributor (CPC, as the pedal's other
 - the external footswitch: a panel-mount ¼″ stereo socket, enclosed, like the guitar jack;
 - the output (stereo already) and the guitar input (a switching jack) stay as they are.
 
-## Measurements needed (phase 3)
+## Measurements (owner, 2026-11-14)
 
-From the owner, in the case, with the new footswitches fitted:
+Taken in the case by the owner. Distances he gave from an outside edge are converted to the
+drawing's frame (x from the left inside wall, y from the rear inside wall) with the 4.87 mm wall
+`medium_layout.py` uses. They supersede the table in "The case and what is already in it" where
+the two differ.
 
-- the inside depth, and the height under a fitted footswitch to the floor;
-- the rotary controller's and the button's centres, how far down each reaches (the KY-040's board
-  and header, the button's body and lugs, neither published), and the KY-040 module's outline as
-  mounted;
-- the rear jacks' and the USB-C's centres, and how far their bodies reach in (in y) and down
-  (from the face);
-- the front strip's free depth: from the Pi's front edge (or the ribbon socket on its header) to
-  the front wall, and where the header is in x;
-- the right-hand wall: the free height and length, for the combo socket (a Neutrik NCJ6FI-H
-  class part has a flange about 26 × 31 mm and reaches about 31 mm in);
-- the left-hand and front walls in the front strip, for the MIDI and EXT FS sockets;
-- whether the base plate can take standoffs (drilled, with countersunk screws), and where its
-  own screws and feet are.
+| What | Measured | In the drawing's frame |
+|---|---|---|
+| Inside depth | 30 mm (not 33) | z 0–30 |
+| Footswitch | Its body takes at least 12 mm below the face, so 18 mm to the floor. The owner would like it sunk to 22 mm (8 mm to the floor); anything between is acceptable. The bush is 12 mm across | bottom at z 18 down to z 8 |
+| Rotary controller (KY-040) | Centre 52 mm from the right outside edge, 32 mm from the rear outside edge. The module reaches almost to the floor. Its pins face the right wall today, to clear the output jack; any orientation is possible, and a shorter part could replace it | (131.1, 27.1), z ≈ 0–30 |
+| Buttons, now two | Lit, 15 mm bush and 18 mm face (given as radii; taken as diameters), 10 mm into the case with their lugs. One below the encoder, 64 mm from the rear outside edge; one level with the encoder, 18 mm from the right outside edge, to move forward if the input jack is in the way. LEDs wired to power | B1 (131.1, 59.1); B2 (165.1, 27.1) as asked; z 20–30 |
+| Guitar input jack | 15 mm from the right outside edge; reaches 28 mm in and 26 mm down from the face | x 168.1, y 0–28, z 4–30 |
+| Output jack | 60 mm from the right outside edge; same reach | x 123.1, y 0–28, z 4–30 |
+| USB-C extension | 24 mm from the left outside edge, 12 mm below the face, reaches 30 mm in, more for the cable's bend | x 19.1, y 0–30+ |
+| Pi 5 | Its right-hand end about 68 mm from the right inside wall; nothing plugs into its USB or Ethernet | x ≈ 25–110 (the drawing has 16.5–101.5) |
+| Ribbon plug on the Pi's header | Its front face 45 mm from the front wall; its left end 31 mm from the left inside wall; the cable leaves it toward the front | x 31–87, front face at y ≈ 65 |
+| Right-hand wall | About 52 mm free between the end of the rear jacks and FS3's body | y ≈ 28–80 |
+| MIDI and EXT FS sockets | Not the front wall. One between the input and output jacks, the other on the right wall by the mic socket | see below |
+| Base plate | Can be drilled for standoffs with countersunk screws. Rubber feet to come: about 5 mm into the case, 10–12 mm across, placed wherever there is room | |
+
+### What they mean for the fit
+
+- **The strip is there.** From the ribbon plug to the front wall is 45 mm, so the board is about
+  157 × 39 mm (x 10.5–167, y 68–107) with a notch for the front-centre pillar: about 60 cm²
+  against about 45 cm² of parts.
+- **Heights.** With the board's top 4.6 mm above the floor (3 mm standoffs, 1.6 mm board), a
+  footswitch at its minimum 12 mm leaves 13.4 mm above the board; at 22 mm it leaves 3.4 mm,
+  which is no room for parts, or for the switch's lugs and wires. A middle setting of about
+  16 mm leaves about 9 mm: low surface-mount parts under the switches, nothing tall. Going to the
+  full 22 mm needs a cut-out in the board under each switch, about 3 cm² each, which then
+  wants parts on both sides or the right-hand extension.
+- **The ribbon header cannot be directly in front of the Pi's plug.** It is 58 mm long, FS1 and
+  FS2 are 69 mm apart, and mated with its socket it stands about 14 mm, taller than the space
+  under a footswitch. It goes in front of the footswitch row (x ≈ 24–82, y ≈ 91–100), with the
+  50.8 mm ribbon lying flat on the board between FS1 and FS2. That works if the footswitch
+  bodies are no more than about 16 mm across, or sit high enough for the ribbon to pass under
+  their edges.
+- **Button B2 collides with the input jack where it was asked for** (the jack's body is
+  right under the face out to y = 28). At 15 mm across it clears the jack from y ≈ 36, which
+  is about 41 mm from the rear outside edge.
+- **The mic combo socket fits the right-hand wall only just.** Turned so its flange is 31 mm
+  along the wall and 26 mm in height (the case is 30 mm deep inside), it takes y ≈ 45–76 and
+  reaches to x ≈ 147. That leaves about 2 mm to B2 behind it and about 4 mm to FS3 in front,
+  and it needs a notch in the board's right-rear corner (about 20 × 11 mm). There is then no room on that wall for another
+  socket.
+- **MIDI between the rear jacks** works as a 3.5 mm socket (x ≈ 146, reaching about 14 mm in,
+  short of the KY-040). **EXT FS has no place yet**: a ¼″ socket reaches 28 mm in, which fits
+  nowhere on the rear or right walls. The choices are a second 3.5 mm socket between the rear
+  jacks (about 14 mm pitch, tight for fat ¼″ plugs either side), a socket on the left wall of the
+  front strip, or leaving it off this board.
+- **Nothing goes under the rear jacks or the KY-040**: they come to within 4 mm of the floor,
+  so a right-hand extension of the board would stay in front of y ≈ 45 and would be cut around
+  the mic socket. The strip alone is the plan.
+
+### Still needed
+
+- The footswitches' centres as fitted, and their bodies' size and shape in plan (the drawing has
+  the old MC7105 cans, 20 × 14.4 mm), and whether the 12 mm includes the lugs.
+- The owner's choices: the footswitch depth, B2's position, and where EXT FS goes.
+- The requirements above still describe one button (the BUTTON connector, R-numbers); they
+  change to two once the positions are settled.
 
 ## Out of scope
 

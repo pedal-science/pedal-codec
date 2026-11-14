@@ -5,11 +5,11 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **The owner takes the measurements** [box-board.md](box-board.md) lists, in the case, with
-   the new footswitches fitted. The questions are all answered (box-board.md, "Decided").
-2. Then phase 3: the fit, drawn in `pedal.project`'s case layout.
-   The board's new parts are chosen (box-board.md, "Parts the box board adds"); the sockets in
-   the case wait for the measurements.
+1. **The owner's measurements are in** [box-board.md](box-board.md), "Measurements", with what
+   they mean for the fit. Three choices and one measurement are still his ("Still needed"): the
+   footswitch depth, button B2's position, where EXT FS goes, and the footswitches' centres and
+   body size.
+2. Then the rest of phase 3: the fit drawn in `pedal.project`'s case layout, and the card template.
 
 Last changed 2026-11-14: **the target changed to a board for the 1590DD box** (the owner, after
 running the pedal in that case the same day), specified in [box-board.md](box-board.md), and
