@@ -209,6 +209,57 @@ noise, headroom and supply rejection are unchanged, because the stages are the s
 8. **The controls:** the encoder is a KY-040 module, the knob The Pi Hut's 35 mm scrubber, and the
    button The Pi Hut's 16 mm rugged metal pushbutton with green LED ring (the table above, R17).
 
+## Parts the box board adds (chosen 2026-11-14)
+
+Everything the phase 2 schematic already has keeps its part and LCSC number (design.md, "Parts").
+These are the parts the box board adds. Stock and prices are from Konnect's copy of the JLCPCB
+parts database on the day, and are checked again on LCSC before ordering (phase 6).
+
+| Part | Use | LCSC | Stock | Price |
+|---|---|---|---|---|
+| RP2350A (QFN-60, 7 × 7 mm) | The controls' microcontroller (R12) | C42411118 | 6,146 | $1.29 |
+| Abracon AOTA-B201610S3R3-101-T (3.3 µH, 0806, polarity marked) | The RP2350's core regulator inductor | C42411119 | 672 | $0.34 |
+| Abracon ABM8-272-T3 (12 MHz, 10 pF, 3225) | The RP2350's crystal, with 1 kΩ series and its load capacitors | C20625731 | 442 | $0.40 |
+| Winbond W25Q16JVUXIQ (16 Mbit, USON-8 2 × 3 mm) | The RP2350's flash. Alternative with more stock: W25Q32JVSSIQ, SOIC-8 208 mil, C179173 (3,349) | C2843335 | 900 | $1.57 |
+| Diodes AP2112K-3.3TRG1 (600 mA LDO, SOT-23-5) | The RP2350's 3.3 V from the Pi's 5 V (R14) | C51118 | 9,742 | $0.17 |
+| Everlight H11L1S(TA) (Schmitt-output optocoupler, SOP-6) | MIDI in (R15); with 220 Ω, a 1N4148W across its LED, and a pull-up to 3.3 V | C78589 | 20,375 | $0.33 |
+| BOOMELE 2.54 mm 2 × 20 IDC box header, straight | The ribbon to the Pi (R5). Right-angle alternative, if phase 3 needs the height: C9145 (1,603) | C9138 | 12,474 | $0.30 |
+| JST B4B-XH-A | BUTTON | C144395 | 537,163 | $0.05 |
+| JST B5B-XH-A | ENCODER | C157991 | 71,184 | $0.09 |
+
+The B2B-XH-A and B3B-XH-A, the G6K-2F-Y DC5 (now one relay, the bypass), the 2N7002 (the
+relay's and the button LED's drivers) and the 1N4148W are already in phase 2's list. The
+RP2350's 0402 capacitors (4.7 µF, 100 nF) and resistors (33 Ω, 1 kΩ, 27 Ω) are JLCPCB basic parts.
+
+**Why these.**
+- **The core regulator follows Raspberry Pi's design exactly.** The RP2350's core supply is an
+  on-chip switching regulator. Raspberry Pi's *Hardware design with RP2350* says its layout needs
+  their inductor, the right way round, beside their 4.7 µF capacitors and the 33 Ω / 4.7 µF filter
+  on VREG_AVDD, and that other choices are at the designer's risk. Feeding the core from an
+  external linear regulator instead has been done, but Raspberry Pi doesn't document it, so the
+  board copies the Pico 2's regulator layout. It keeps the regulator at the board's digital end,
+  furthest from the inputs. Its switching frequency is far above audio. Phase 8 measures whether
+  any of it reaches the inputs.
+- **The crystal is the one Raspberry Pi recommends**, with its 1 kΩ damping resistor: the RP2350's
+  oscillator circuit is tuned for it. JLCPCB's basic 12 MHz part (C9002) is 20 pF, not 10 pF, and
+  would need the circuit re-tested over temperature.
+- **The H11L1, not the 6N138.** The 6N138 needs 4.5 V; the H11L1 runs from 3 V, so it works from
+  the RP2350's 3.3 V with no level shifting, and its Schmitt output gives clean edges at
+  31 250 baud.
+- **2 MB of flash** is plenty for the controls' firmware. The SOIC-8 alternative has more stock if
+  the USON part runs short.
+- **The ribbon's own parts** are the owner's to buy: 40-way grey ribbon at 1.27 mm pitch, and two
+  2 × 20 IDC sockets (LCSC C21856 has them, with strain reliefs), at the length phase 3 measures.
+
+**The sockets in the case** are not on the board, and none is a JLCPCB part. They are chosen once
+phase 3 has measured the walls, from a UK distributor (CPC, as the pedal's other parts were):
+
+- the mic input: a Neutrik combo XLR/¼″ socket with solder terminals or pins that take flying
+  leads, about 26 × 31 mm on the panel;
+- MIDI in: a panel-mount 3.5 mm stereo socket;
+- the external footswitch: a panel-mount ¼″ stereo socket, enclosed, like the guitar jack;
+- the output (stereo already) and the guitar input (a switching jack) stay as they are.
+
 ## Measurements needed (phase 3)
 
 From the owner, in the case, with the new footswitches fitted:
