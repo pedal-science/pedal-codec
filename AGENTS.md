@@ -16,7 +16,7 @@ repository owns what.
 
 | Path | What it is |
 |---|---|
-| `../pedal.project/docs/box-design.md` | **The current proposal** (2026-11-14): the 1590DD pedal designed to be made again, as an audio board, a Pi board and a control board. Awaiting the owner |
+| `../pedal.project/docs/box-design.md` | **The current target**, agreed 2026-11-14: the 1590DD pedal designed to be made again, as an audio board, a Pi board and a control board |
 | `docs/box-board.md` | Being superseded by the proposal above (2026-11-14): the requirements for the board that fits the pedal's 1590DD case, cut down from the full-size HAT, with the owner's open questions |
 | `docs/design.md` | The requirements, the codec (TAC5212) and what its datasheet means for the board, the board's blocks, and the open questions |
 | `docs/plan.md` | The phases from requirements to tested boards, each with its done-when, and the tools each uses. Start at "Next session starts with" |
