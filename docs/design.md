@@ -536,15 +536,16 @@ is the review with every finding answered. What the schematic settled or changed
   Class 2 dielectrics distort when the voltage across them swings; here the DC across them is
   small and the signal across them smaller, so the distortion should be under the codec's.
   Measured in phase 6, with film or electrolytic parts as the fallback.
-- **The unbalanced outputs' 22 µF 16 V electrolytic coupling capacitors (C81, C92; C22387968) had
+- **The unbalanced outputs' 22 µF 16 V electrolytic coupling capacitors (C81, C85; C22387968) had
   about 7,000 in stock** on the day: enough, but checked again before ordering.
 - **The bench DIP switch (SW1, SMXS-06K-TP, C5439765)** uses KiCad's generic 6-way slide footprint;
   phase 3 checks it against the maker's drawing before placement.
 - **Seven parts are unfitted options**, marked DNP: the 12.288 MHz oscillator with its decoupling and
-  link (X1, C37, R22), and each balanced output's SHIELD-to-ground 0 Ω and 10 nF (R130, C82; R159,
-  C93). Phase 3 sets KiCad's DNP attribute on them before any BOM is made.
+  link (X1, C37, R22), and each balanced output's SHIELD-to-ground 0 Ω and 10 nF (R130, C82; R163,
+  C92). Phase 3 sets KiCad's DNP attribute on them before any BOM is made.
 - **Input 2's parts have the lower designators** (J3, J4, R36–R70, U7–U9, K1–K3; Input 1 is J5, J6,
-  R71–R105, U10–U12, K4–K6), because KiCad annotated the second sheet instance first. Cosmetic;
+  R71–R105, U10–U12, K4–K6), because KiCad annotated the second sheet instance first.
+  In each, the OPA2197 is the lowest U, then the OPA1612, then the OPA1637 (U7–U9, U10–U12). Cosmetic;
   the silkscreen and the BOM say which channel a part belongs to by its sheet.
 
 ## What the board must prove

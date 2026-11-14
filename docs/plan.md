@@ -11,7 +11,7 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
    footprint with the RGE package's four corner pads, and KiCad's DNP attribute on the seven
    unfitted parts.
 
-Last changed 2026-11-14: phase 2's schematic done and reviewed, waiting for the owner. Seven sheets
+Last changed 2026-11-14: phase 2's schematic done, reviewed, then redrawn so every sheet reads as a circuit (wires in signal order, the netlist unchanged), waiting for the owner. Seven sheets
 in KiCad 10, every symbol with `LCSC` and `MPN`, ERC clean, the netlist checked across sheets, and
 the kicad-happy analysis and its ngspice run triaged with every finding answered. The review added
 one capacitor (C94, on the load switch's output) and checked every custom symbol's pinout against
