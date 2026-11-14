@@ -10,8 +10,8 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
    is the plan now. Its step 2 (parts and the mechanical model) is under way: the case's sizes
    are from Hammond's and Tayda's drawings, and the wall sockets are chosen (Neutrik NMJ6HCD2
    three times, NCJ6FA-H, a PJ-392-type MIDI socket; that file, "Parts chosen so far").
-2. Next here: the parts still to choose (the USB-C socket, the encoder, the buttons, the flat
-   cables' connectors, the 40-pin socket), then cut this repository's schematic into the audio
+2. Next here: the parts still to choose (the USB-C socket, the lit buttons, the 40-pin
+   socket; the encoder and the flat cables' sockets are chosen), then cut this repository's schematic into the audio
    board and draw the Pi board. Phases 3 to 9 below describe the earlier single board and are
    rewritten when that starts; [box-board.md](box-board.md) likewise.
 
