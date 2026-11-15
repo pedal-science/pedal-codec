@@ -1,4 +1,5 @@
 * Audio board, bypass at rest with the analogue 5 V off (Pi in standby, or the pedal unpowered).
+* As the board was with ONE relay. A second relay (K2) now takes the tip off the buffer at rest.
 * The guitar's tip is joined to the output's tip by the relay, and still hangs on the buffer's input
 * network: C29 100 nF, R19 1 M to VM, R20 1 k into the OPA2197's input. With no supply, that input's
 * protection diodes go to rails sitting at 0 V. Does the dry signal clip?

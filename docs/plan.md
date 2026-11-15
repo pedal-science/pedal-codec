@@ -5,15 +5,16 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **The audio board's schematic is drawn and waits for the owner's review** (2026-11-15):
+1. **The audio board's schematic is drawn, and the owner has looked it over** (2026-11-15: "looks
+   good to my untrained eye"):
    [`hardware/audio-board/audio-board.pdf`](../hardware/audio-board/audio-board.pdf), five pages,
    ERC clean. [box-board.md](box-board.md) says what is on it, what was decided while drawing it,
    and what is open. It is step 4 of the box's plan
    ([../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md)), for one
    board of the three.
-2. **Two things in it are the owner's to decide** (box-board.md, "Open" and "Decided while
-   drawing"): whether a loud guitar clipping in the bypass when the pedal has no power matters
-   enough for a second relay, and whether the mic input keeps its four 63 V capacitors.
+2. **The bypass has two relays** (the owner, 2026-11-15), so the bypassed guitar never touches
+   the buffer. One thing is still the owner's to decide: whether the mic input keeps its four
+   63 V capacitors (box-board.md, "Decided while drawing").
 3. **Next here:** the Pi board's schematic and the control board's, each a KiCad project of its
    own beside `hardware/audio-board/`. The Pi board's flat-cable socket has to carry the nets in
    box-design.md's "The link's pin order", and its parts for the RP2350 and MIDI are already
@@ -93,14 +94,14 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 
 - A KiCad 10 project in `hardware/audio-board/`, drawn through Konnect, with the phase 2 project
   left as it is: the link and the supplies, the codec, the two inputs, the two outputs with the
-  bypass relay and EXT FS.
+  bypass relays and EXT FS.
 - Every carried-over part keeps its value, footprint, `LCSC` and `MPN`; the five connectors are
   the parts box-design.md chose.
 - The flat cable's pin order decided and written into box-design.md, for the Pi board to match.
 - ERC clean; the netlist read net by net against the intended circuit.
 - **Done when** the owner has reviewed the schematic as a PDF.
-- **Status (2026-11-15):** done but for the owner's review. `hardware/audio-board/audio-board.pdf`
-  is the export; box-board.md is the record.
+- **Status (2026-11-15):** done, and seen by the owner, who asked for the second bypass relay the
+  same day. `hardware/audio-board/audio-board.pdf` is the export; box-board.md is the record.
 
 ## Phase 4: checks before layout
 
@@ -116,11 +117,10 @@ Each of these can change the schematic or a footprint, so they come before any c
   current rating per contact, from the same sheet.
 - A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks.
 - KiCad's "do not populate" attribute set on X1, C28 and R15.
-- The owner's two decisions (the bypass with no power; the mic's capacitors), and the schematic
-  changed if either changes it.
-- ngspice for what changed: the bypass relay's switching transient at the output socket, and the
+- The owner's decision on the mic's capacitors, and the schematic changed if it changes.
+- ngspice for what changed: the bypass relays' switching transient at the output socket, and the
   right channel into a mono plug. The bypass with the buffer unpowered is done
-  ([`sim/box/`](../sim/box/README.md)).
+  ([`sim/box/`](../sim/box/README.md)), and is why there are two relays.
 - The kicad-happy analysis and its ngspice run on the new project, every finding answered, as
   phase 2 did; the independent `kicad-design-review-agent` pass.
 - **Done when** each has its answer in box-board.md and ERC is still clean.
@@ -132,9 +132,9 @@ Each of these can change the schematic or a footprint, so they come before any c
   ¼″ sockets 18.7 mm apart on the rear edge, the mic socket on the right edge, about 9 mm above
   the board under the footswitch.
 - **4 layers**: signal, unbroken ground, power, signal. The 1 MΩ node is a few millimetres from
-  the guitar socket to the buffer, guarded. The bypass's trace from the guitar socket to the
-  relay carries the same raw signal and gets the same care. The flat-cable socket, the codec's
-  digital side and the relay's coil are at the end away from the inputs.
+  the guitar socket to the buffer, guarded. The bypass's trace from K2 at the guitar socket to K1
+  at the output socket carries the same raw signal and gets the same care. The flat-cable socket, the codec's
+  digital side and K1 are at the end away from the inputs; K2 has to be at the guitar socket.
 - The EXT FS lines run along the board's edge, filtered where they enter.
 - The flat cable's type and the Pi board's pin numbering are fixed here, with the Pi board's
   layout, and written into box-design.md.
@@ -159,7 +159,8 @@ On the bench first, the audio board alone on a short flat cable, then in the box
   at their test points, nothing warm. With 3.3 V off and 5 V on, +5VA and +3V3A are off.
 - The codec at 0x50, configured from userspace (design.md, "Linux", route 2); the overlay in
   `overlay/`; playback, capture, loopback. GPIO2 reading the guitar socket's plug contact.
-- The relay from the RELAY line; the bypass at rest; EXT FS's two lines at the cable.
+- Both relays from the RELAY line; the bypass at rest, with no power and a loud guitar; EXT FS's
+  two lines at the cable.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.

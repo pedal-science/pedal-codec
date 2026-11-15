@@ -24,4 +24,6 @@ the effect, not as a figure.
 
 So an unpowered bypass is clean for quiet playing and clips a loud guitar. Powered, the buffer's
 input sits at the mid-rail with 2.4 V either side, and this does not happen. What follows from it
-is in [../../docs/box-board.md](../../docs/box-board.md), "Open".
+was a second relay, K2, which takes the tip off the buffer while bypassed (the owner, 2026-11-15):
+[../../docs/box-board.md](../../docs/box-board.md), "Decided while drawing". The deck is the
+board as it was with one relay.

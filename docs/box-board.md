@@ -16,7 +16,7 @@ and are below; its form, its XH leads, its ribbon and its measurements of the pr
 |---|---|
 | Where | Rear right of the case and the right end of the front strip: about 60 × 104 mm, near the base plate |
 | Held by | The three ¼″ sockets' nuts on the rear wall and the mic socket's two screws on the right wall |
-| Carries | Guitar in, EXT FS and stereo out (three Neutrik NMJ6HCD2); the mic input (a Neutrik NCJ6FA-H); the guitar buffer; the mic preamp; the TAC5212 with its filters and decoupling; one output stage per channel; the bypass relay; the analogue supplies; one 16-way flat-cable socket |
+| Carries | Guitar in, EXT FS and stereo out (three Neutrik NMJ6HCD2); the mic input (a Neutrik NCJ6FA-H); the guitar buffer; the mic preamp; the TAC5212 with its filters and decoupling; one output stage per channel; the two bypass relays; the analogue supplies; one 16-way flat-cable socket |
 | Does not carry | Anything digital but the codec's own lines. The RP2350, MIDI, the footswitches, the encoder, the buttons, the ID EEPROM and the USB-C socket are on the Pi board and the control board |
 | Joined to the rest by | One 16-way 1.0 mm flat cable to the Pi board, which is the only place the two boards' grounds meet |
 
@@ -37,16 +37,16 @@ by sheet.
 |---|---|
 | Link and power | J1, the flat-cable socket; U1, the analogue 5 V's load switch, and L1; U2, the AVDD regulator; the mid-rail and its buffer, U3; FB1 and the relay coil's rail; test points on +5VA, +3V3A, VM and ground |
 | Codec | U4, the TAC5212, with its supplies' decoupling, the two input filters, the I2S series resistors, the address strap, and the unfitted oscillator option (X1) |
-| Inputs | J2, guitar in, with U5 (the buffer) and U6 (its differential driver); J3, mic in, with U7 (the preamp) and U8 (its driver) |
-| Outputs, bypass and EXT FS | U9, both output stages; K1, the bypass relay, with Q1 and D5; J4, stereo out; J5, EXT FS, with its two filters |
+| Inputs | J2, guitar in, with K2 (the bypass relay at the input), U5 (the buffer) and U6 (its differential driver); J3, mic in, with U7 (the preamp) and U8 (its driver) |
+| Outputs, bypass and EXT FS | U9, both output stages; K1, the bypass relay at the output, with Q1, which drives both coils; J4, stereo out; J5, EXT FS, with its two filters |
 
 Checked on 2026-11-15:
 
 | Check | Result |
 |---|---|
 | KiCad ERC, every severity (`kicad-cli sch erc --severity-all`, and Konnect's `run_erc`) | 0 errors, 0 warnings |
-| Netlist (`kicad-cli sch export netlist`), every net read against the intended circuit | 105 nets. The only one-pin nets are the eight flagged no-connects: the unused switch contacts of J2, J4 and J5, and U2's NC pin |
-| `LCSC`, `MPN` and a footprint on every symbol | 142 of 142 (the eight test points carry `none` and "PCB test pad", as in phase 2) |
+| Netlist (`kicad-cli sch export netlist`), every net read against the intended circuit | 108 nets. The only one-pin nets are the nine flagged no-connects: the unused switch contacts of J2, J4 and J5, K2's spare contact, and U2's NC pin |
+| `LCSC`, `MPN` and a footprint on every symbol | 144 of 144 (the eight test points carry `none` and "PCB test pad", as in phase 2) |
 | Polarised parts and diodes, read from the netlist | Each electrolytic's positive pin is on its higher-voltage side; the clamps and the coil's diode face the right way |
 
 ## What carried over, and from where
@@ -59,7 +59,7 @@ Checked on 2026-11-15:
 | U6 and U8 OPA1637, each with 4.99 kΩ and 220 pF feedback | Input sheet: U12 (and U9) | No |
 | U7 OPA1612 and the mic path: 2 × 47 µF 63 V back to back, 10 Ω, SS14 clamps, 22 Ω, 1.2 kΩ to VM, 249 Ω and 49.9 Ω, 4.99 kΩ | Input sheet: U11 | The phantom feed is gone; a 100 kΩ bleed per leg is added (below) |
 | U9 OPA1656, both halves: 10 µF, the differential-to-single-ended stage, 22 µF, 100 Ω, 100 kΩ bleed | Output sheet: U14, one per output | One dual for both channels; 10 kΩ in place of 1 kΩ + 9.09 kΩ (below) |
-| K1 G6K-2F-Y, Q1 2N7002, D5 1N4148W | Output sheet: K7, Q10, D24 | One relay, at the socket, as a bypass, not two as mutes |
+| K1 and K2 G6K-2F-Y, Q1 2N7002, D5 and D6 1N4148W | Output sheet: K7, Q10, D24 | Two relays on one driver, at the sockets, as a bypass, not two as mutes |
 
 Gone: the 40-pin header, the ID EEPROM and the mounting holes (the Pi board's now); the phantom
 supply and both feeds; the mode relays KA and KB and the Line path; the balanced followers, their
@@ -76,6 +76,9 @@ change.
 - **The tip's switch contact goes to ground**, so with no plug in, the input is shorted and
   silent, and so is the bypassed output. Phase 2's four-wire lead did not bring that contact
   to the board.
+- The 2.2 MΩ to ground is on the buffer's side of K2, so the buffer's input capacitor is settled
+  before the relay ever joins it to the guitar. The tip itself always has a path to ground: the
+  guitar, or with no plug the contact above.
 - The ring goes to ground: a guitar lead's plug shorts it there anyway.
 - **Plug detection** is the sleeve's switch contact, as phase 2: closed to the sleeve with no
   plug, open with one, pulled up to 3.3 V through 10 kΩ. It goes through 1 kΩ to the codec's
@@ -102,12 +105,22 @@ change.
 - The 100 kΩ bias resistors to VM are gone: with no relay there, the stage itself holds the
   capacitors' DC.
 
-**Bypass relay (K1), as R10 decided.** Drawn at rest. One pole joins the output's tip to the
-guitar's tip, the other rests the output's ring on 100 Ω to ground. Energised, the poles take the
-left and right stages. The 100 kΩ bleeds are on the stages' side of the contacts, so each
-coupling capacitor is settled before the relay ever switches.
+**Bypass relays (K1 and K2).** Two, on one line and one driver (the owner, 2026-11-15; R10 had
+one). Both are drawn at rest.
+- **K2, at the guitar socket.** At rest the tip goes to the bypass trace and is off the buffer.
+  Energised, the tip goes to the buffer, and K2's other pole grounds the bypass trace, so the
+  trace can't carry the output back to the input while the effect is on.
+- **K1, at the output socket.** At rest the output's tip takes the bypass trace and its ring
+  rests on 100 Ω to ground. Energised, the poles take the left and right stages. The 100 kΩ
+  bleeds are on the stages' side of the contacts, so each coupling capacitor is settled before
+  the relay ever switches.
+- **Why two.** With one, the tip stayed on the buffer's input while bypassed, and with the
+  analogue 5 V off (the pedal unpowered, or the Pi in standby) that input's protection diodes
+  clipped a loud guitar: 35 % distortion at 1 V peak, simulated with a generic diode
+  ([`sim/box/`](../sim/box/README.md)). Now the bypass is a wire from socket to socket, whatever
+  the supplies are doing.
 - RELAY comes from the RP2350 through 1 kΩ to Q1's gate, with 100 kΩ to ground: no cable, or an
-  RP2350 that isn't driving the line, is bypass.
+  RP2350 that isn't driving the line, is bypass. Each coil has its own diode.
 - A mono plug in the output shorts the ring to the sleeve. Bypassed, that shorts the rest
   resistor. In effect it loads the right stage with its own 100 Ω through 22 µF: 15 mA rms at
   full scale, which the OPA1656 drives all day.
@@ -128,7 +141,8 @@ From 2026-11-14, unchanged:
 
 1. The mic socket is a combo XLR/¼″.
 2. No phantom power in the box.
-3. One bypass relay, de-energised at rest, released by the RP2350 once the Pi's audio runs.
+3. A bypass at rest, released by the RP2350 once the Pi's audio runs. Two relays on one line since
+   2026-11-15, so the bypassed guitar never touches the buffer.
 4. The guitar socket is a switching one, and the board reads its plug contact.
 5. One bond between circuit ground and the case, at the guitar socket.
 6. EXT FS is a ¼″ socket, between out and in.
@@ -140,33 +154,26 @@ From 2026-11-14, unchanged:
    the case too, 19 and 37 mm from the guitar socket's. Checked with a meter on the first part
    (plan.md, phase 4). If they are joined and the measurement in the box minds, the fix is an
    insulating washer set on two of the three, or a different part there.
-2. **Bypassed with no power, a loud guitar clips.** At rest the guitar's tip is on the output's
-   tip and also still on the buffer's input, as R10 has it. With the analogue 5 V off (the pedal
-   unpowered, or the Pi in standby), that input's protection diodes go to rails at 0 V and
-   conduct on peaks through the 100 nF and 1 kΩ. Simulated with a generic diode
-   ([`sim/box/`](../sim/box/README.md)): clean at 0.1 and 0.3 V peak, 35 % distortion at 1 V
-   peak. While the pedal is powered and booting the buffer is powered too, and there is no
-   effect. The cure, if unpowered bypass matters, is a second G6K on the same driver, so the tip
-   leaves the buffer when it goes to the output (true bypass, and the ring keeps its rest). The
-   owner's choice; the schematic follows R10 as decided.
-3. **The flat-cable socket's footprint is its sibling's.** The part is JUSHUO's AFA07-S16FCC-00
+2. **The flat-cable socket's footprint is its sibling's.** The part is JUSHUO's AFA07-S16FCC-00
    (C13744); KiCad's library has the AFA07-S16FCA-00, which the schematic names. Both are the
    bottom-contact 2.5 mm AFA07; the land pattern is checked against the FCC's sheet before layout.
-4. **The two Neutrik footprints are KiCad's**, not yet checked against Neutrik's drawings.
-5. **The TAC5212's footprint lacks its four corner pads** (design.md, "Phase 2 schematic"). A
+3. **The two Neutrik footprints are KiCad's**, not yet checked against Neutrik's drawings.
+4. **The TAC5212's footprint lacks its four corner pads** (design.md, "Phase 2 schematic"). A
    footprint from TI's land pattern is made before layout.
-6. **The three unfitted parts are marked DNP only in their value text**, as in phase 2. KiCad's
+5. **The three unfitted parts are marked DNP only in their value text**, as in phase 2. KiCad's
    "do not populate" attribute is set on X1, C28 and R15 before any BOM is made.
-7. **Q1's gate gets 3.3 V.** The 2N7002's on-resistance is specified at 4.5 V and above. The coil
-   needs 20 to 30 mA, and phase 2's relays were drawn the same way; checked at bring-up.
-8. **The supply rejection, gain and noise simulations were not rerun.** Phase 1's decks cover
+6. **Q1's gate gets 3.3 V.** The 2N7002's on-resistance is specified at 4.5 V and above. The two
+   coils need 40 to 60 mA, and phase 2's relays were drawn the same way; checked at bring-up.
+7. **The supply rejection, gain and noise simulations were not rerun.** Phase 1's decks cover
    the stages that are unchanged. What changed is small (0.08 dB at the outputs; the mic's bleeds,
-   100 kΩ against a 2.4 kΩ input) and is reasoned here, not simulated.
+   100 kΩ against a 2.4 kΩ input; the bypass, now a wire) and is reasoned here, not simulated.
+8. **The mic input's four 63 V capacitors** stay unless the owner prefers one 22 µF per leg
+   ("Decided while drawing").
 
 ## Power
 
-From the cable's +5 V, about 0.1 A by the earlier budget's figures (design.md, "Power"): the
-relay's coil up to 30 mA, the codec about 30 mA, and the op-amps the rest, which are fewer than
+From the cable's +5 V, about 0.15 A by the earlier budget's figures (design.md, "Power"): the
+two relay coils up to 60 mA, the codec about 30 mA, and the op-amps the rest, which are fewer than
 the 60 mA estimate counted. One conductor carries it; the socket's rating per contact is read
 from its sheet before layout.
 
@@ -176,11 +183,11 @@ from its sheet before layout.
 | +3V3A | +5VA, U2 (on with the Pi's 3.3 V) | The codec's AVDD |
 | +3V3 | The Pi's 3.3 V, over the cable | The codec's IOVDD, the plug contact's pull-up, the two enables |
 | VM | +5VA halved, two RC stages, U3 | The bias of every stage |
-| +5V_RLY | +5 V through FB1, 110 µF | The relay's coil |
+| +5V_RLY | +5 V through FB1, 110 µF | The two relays' coils |
 
 With the Pi in standby (5 V on, 3.3 V off) both enables are low, so +5VA and +3V3A are off and
 nothing back-powers the codec's IOVDD or the Pi's pins. The relay rail stays up, so the RP2350
-could still hold the relay; it lets go when the Pi's reports stop.
+could still hold the relays; it lets go when the Pi's reports stop.
 
 ## Parts
 
@@ -200,10 +207,10 @@ checked again before ordering.
 | 2 | OPA1656IDR | OPA1656IDR | C1849431 | U3, U9 |
 | 1 | TPS22917DBVR | TPS22917DBVR | C2681320 | U1 |
 | 1 | TPS7A2033PDBVR | TPS7A2033PDBVR | C2862740 | U2 |
-| 1 | G6K-2F-Y DC5 | G6K-2F-Y DC5 | C231389 | K1 |
+| 2 | G6K-2F-Y DC5 | G6K-2F-Y DC5 | C231389 | K1, K2 |
 | 1 | 2N7002 | 2N7002 | C8545 | Q1 |
 | 4 | SS14 | SS14 | C2480 | D1–D4 |
-| 1 | 1N4148W | 1N4148W | C81598 | D5 |
+| 2 | 1N4148W | 1N4148W | C81598 | D5, D6 |
 | 1 | 10 µH | FNR4030S100MT | C167879 | L1 |
 | 1 | Ferrite | BLM18PG221SN1D | C80165 | FB1 |
 | 1 | 12.288 MHz oscillator, unfitted | HSO321S | C160458 | X1 |
@@ -237,7 +244,7 @@ checked again before ordering.
 | 3 | 1 MΩ | 0603WAF1004T5E | C22935 | R19, R26, R31 |
 | 1 | 2.2 MΩ | 0603WAF2204T5E | C22938 | R18 |
 
-134 parts and eight test pads.
+136 parts and eight test pads.
 
 ## Parts chosen earlier for what is now the Pi board
 
