@@ -5,26 +5,29 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **The concept is agreed** (the owner, 2026-11-14):
-   [../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md). Its plan
-   is the plan now. Its step 2 (parts and the mechanical model) is done but for how the buttons
-   are lit: every socket, switch and connector has a part and an LCSC number (that file, "Parts
-   chosen so far"), and the case has a first hole table.
-2. Next here: cut this repository's schematic into the audio board, and draw the Pi board and
-   the control board, with those parts. Phases 3 to 9 below describe the earlier single board
-   and are rewritten when that starts; [box-board.md](box-board.md) likewise.
+1. **The audio board's schematic is drawn and waits for the owner's review** (2026-11-15):
+   [`hardware/audio-board/audio-board.pdf`](../hardware/audio-board/audio-board.pdf), five pages,
+   ERC clean. [box-board.md](box-board.md) says what is on it, what was decided while drawing it,
+   and what is open. It is step 4 of the box's plan
+   ([../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md)), for one
+   board of the three.
+2. **Two things in it are the owner's to decide** (box-board.md, "Open" and "Decided while
+   drawing"): whether a loud guitar clipping in the bypass when the pedal has no power matters
+   enough for a second relay, and whether the mic input keeps its four 63 V capacitors.
+3. **Next here:** the Pi board's schematic and the control board's, each a KiCad project of its
+   own beside `hardware/audio-board/`. The Pi board's flat-cable socket has to carry the nets in
+   box-design.md's "The link's pin order", and its parts for the RP2350 and MIDI are already
+   chosen (box-board.md, last section).
+4. **Before the audio board is laid out:** phase 4's checks, the first of which needs one
+   NMJ6HCD2 in the owner's hand.
 
-Last changed 2026-11-14: **the target changed to a board for the 1590DD box** (the owner, after
-running the pedal in that case the same day), specified in [box-board.md](box-board.md), and
-its eight questions answered by the owner the same day: a combo mic socket, no phantom, bypass
-at rest, a switching guitar jack, the RP2350 as a chip, one case bond, MIDI on 3.5 mm TRS, and
-the encoder (KY-040) and button chosen. Phases 3
-onward are rewritten for it. The full-size HAT's phase 2 schematic, reviewed and redrawn as a
-circuit (`a67618f`, pushed), is the source its sheets are cut from. Before that, 2026-11-14:
-phase 2's schematic, seven sheets in KiCad 10, every symbol with `LCSC` and `MPN`, ERC clean, the
-kicad-happy analysis and its ngspice run triaged. 2026-11-11: phase 1 (the TAC5212 brought up from
-userspace over I2C, every part with its LCSC number and stock, ngspice for each mode, the supply
-rejection and the phantom thump and faults).
+Last changed 2026-11-15: phases 3 to 9 rewritten for the audio board. They had described one
+L-shaped board on a ribbon with every control on it, which the box's design replaced on
+2026-11-14 with an audio board, a Pi board and a control board. Before that, 2026-11-14: phase 2's
+schematic of the full-size HAT, seven sheets, reviewed and redrawn as circuits (`a67618f`), which
+is still in `hardware/` and is where the audio board's parts and values come from. 2026-11-11:
+phase 1 (the TAC5212 brought up from userspace over I2C, every part with its LCSC number and
+stock, ngspice for each mode, the supply rejection and the phantom thump and faults).
 
 ## Tools
 
@@ -86,92 +89,97 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   [schematic-review.md](schematic-review.md) the review. The independent `kicad-design-review-agent`
   pass moves to phase 3, where it can see the layout too.
 
-## Phase 3: the fit
+## Phase 3: the audio board's schematic
 
-The box board's outline, found in the case before anything is drawn in KiCad.
-
-- The owner's measurements (box-board.md, "Measurements").
-- `../pedal.project/enclosure/src/medium_layout.py` gains the rotary controller, the button, the
-  new footswitches' depth, the USB-C, the board's outline with its pillar notches and any cut-outs,
-  the ribbon's path from the Pi's header, the standoffs, and, if they fit, the mic, MIDI and
-  EXT FS sockets. Its section view gains the heights: the floor, standoffs, board, the tallest
-  parts, the footswitches. That is a `pedal.project` change, committed there.
-- An area budget: the blocks the board keeps (box-board.md, "What is reused"), each with a
-  footprint estimate from the phase 2 parts, against the outline. If it doesn't fit, the order of
-  retreat is: the right-hand extension (R3), parts on both sides, then the controls off the board.
-- A 1:1 print of the outline, cut from card and tried in the case by the owner with the Pi,
-  screen, footswitches, encoder and button fitted.
-- **Done when** the owner has tried the card in the case and the outline, the connector
-  positions and the height limits are written into box-board.md.
-
-## Phase 4: schematic for the box
-
-- In `hardware/`, through Konnect: the phase 2 project cut down to the box board, sheet by sheet
-  as box-board.md's table says. One input sheet for the guitar path and one for the mic path,
-  one output sheet for both channels with the one relay, a controls sheet (the
-  RP2350 with its flash, crystal and supply; FS1–FS3, EXT FS, MIDI, encoder, button, the Pi's
-  reset and SWD lines), the box header for the ribbon, and no phantom. Drawn as
-  circuits from the start, as the redraw left them.
-- Every new part with `LCSC` and `MPN` and stock checked (the optocoupler, the box header, the
-  RP2350 and its parts, the extra XH sizes).
-- ngspice for what changed: the right channel into a short (R9), the bypass relay's switching
-  transient (the bypass), and the MIDI input's opto at 31 250 baud.
-- The header's pin map rewritten (design.md, "Header use"), with the UART, SWD and reset lines
-  added; and the RP2350's pin map, which `../pedal.project/firmware/` will follow.
-- ERC clean, netlist reviewed, the kicad-happy analysis triaged, as in phase 2.
+- A KiCad 10 project in `hardware/audio-board/`, drawn through Konnect, with the phase 2 project
+  left as it is: the link and the supplies, the codec, the two inputs, the two outputs with the
+  bypass relay and EXT FS.
+- Every carried-over part keeps its value, footprint, `LCSC` and `MPN`; the five connectors are
+  the parts box-design.md chose.
+- The flat cable's pin order decided and written into box-design.md, for the Pi board to match.
+- ERC clean; the netlist read net by net against the intended circuit.
 - **Done when** the owner has reviewed the schematic as a PDF.
+- **Status (2026-11-15):** done but for the owner's review. `hardware/audio-board/audio-board.pdf`
+  is the export; box-board.md is the record.
+
+## Phase 4: checks before layout
+
+Each of these can change the schematic or a footprint, so they come before any copper.
+
+- **The first NMJ6HCD2, with a meter: is the chrome ferrule joined to the sleeve contact?** The
+  drawing doesn't say. The guitar socket is meant to be the one bond between circuit ground and
+  the case, and the same part is used for the output and EXT FS. If the ferrule is joined, all
+  three bond; the answer goes into box-board.md, with what is done about it. While the part is
+  out: which contact each of its six pins is, against KiCad's symbol.
+- The footprints against their makers' drawings: both Neutrik sockets, and the flat-cable socket
+  (the schematic names KiCad's AFA07-S16FCA-00; the part is the FCC). The flat-cable socket's
+  current rating per contact, from the same sheet.
+- A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks.
+- KiCad's "do not populate" attribute set on X1, C28 and R15.
+- The owner's two decisions (the bypass with no power; the mic's capacitors), and the schematic
+  changed if either changes it.
+- ngspice for what changed: the bypass relay's switching transient at the output socket, and the
+  right channel into a mono plug. The bypass with the buffer unpowered is done
+  ([`sim/box/`](../sim/box/README.md)).
+- The kicad-happy analysis and its ngspice run on the new project, every finding answered, as
+  phase 2 did; the independent `kicad-design-review-agent` pass.
+- **Done when** each has its answer in box-board.md and ERC is still clean.
 
 ## Phase 5: layout
 
-- The outline from phase 3; standoff holes for the base plate; the box header at the end nearest
-  the Pi; the XH connectors on the board's edges, each placed for its wire's shortest clean run
-  (R18–R20); the height limit as a keep-out under the footswitches.
-- **4 layers**: signal, unbroken ground, power, signal. The 1 MΩ node short and guarded; the
-  analogue end free of digital traces on every layer; the RP2350 and its crystal at the
-  far end from the inputs.
-- DRC against JLCPCB's 4-layer rules; the `emc` skill's check; the independent
-  `kicad-design-review-agent` pass, now that it can see the layout; a STEP export set into the
-  case model to check heights and the ribbon's path.
-- **Done when** DRC is clean and the owner has reviewed the plots and the 3D view in the case.
+- The outline, the sockets' positions and the height limits come from the case model in
+  `../pedal.project/enclosure/src/box_layout.py`, not from here: about 60 × 104 mm, the three
+  ¼″ sockets 18.7 mm apart on the rear edge, the mic socket on the right edge, about 9 mm above
+  the board under the footswitch.
+- **4 layers**: signal, unbroken ground, power, signal. The 1 MΩ node is a few millimetres from
+  the guitar socket to the buffer, guarded. The bypass's trace from the guitar socket to the
+  relay carries the same raw signal and gets the same care. The flat-cable socket, the codec's
+  digital side and the relay's coil are at the end away from the inputs.
+- The EXT FS lines run along the board's edge, filtered where they enter.
+- The flat cable's type and the Pi board's pin numbering are fixed here, with the Pi board's
+  layout, and written into box-design.md.
+- DRC against JLCPCB's 4-layer rules; the `emc` skill's check; a STEP export set into the case
+  model to check every height and that the board tilts into the rear wall.
+- **Done when** DRC is clean and the owner has reviewed the plots and the board in the case model.
 
 ## Phase 6: order
 
 - The fab package (Konnect `manufacturing`, or the `bom` and `jlcpcb` skills): Gerbers, drill,
-  BOM with LCSC numbers, placement file, KiCad's DNP attribute set on every unfitted part.
-- JLCPCB, 4-layer, 5 boards, assembled on the top side; the box header and XH connectors by
-  JLCPCB or by hand. Also the ribbon (40-way,
-  2.54 mm, the length phase 3 measured) and the standoffs.
+  BOM with LCSC numbers, placement file. Stock checked again on the day.
+- JLCPCB, 4-layer, assembled. The four sockets are through-hole: assembled by JLCPCB if they
+  will, by hand if not (about 25 joints a board).
+- Ordered with the Pi board and the control board, so the three arrive together.
 - **Done when** the owner has the quote and has placed the order. Agents never place it.
 
 ## Phase 7: bring-up
 
-On piv, the bench device, first, then in the box on vip.
+On the bench first, the audio board alone on a short flat cable, then in the box on vip.
 
-- Power before the Pi: rails on a bench supply, nothing warm; the Pi's standby (5 V on, 3.3 V
-  off) back-powers nothing, the RP2350 included.
-- EEPROM written (`eepmake`, `eepflash.sh`); the codec at 0x50, configured from userspace
-  (design.md, "Linux", route 2); the overlay in `overlay/`; playback, capture, loopback.
-- The RP2350 programmed from the Pi over SWD; the Pico firmware ported to the board's pin map in
-  `../pedal.project/firmware/`; the footswitches, EXT FS, encoder, button and MIDI each producing
-  their UART messages.
+- Power before the Pi: 5 V and 3.3 V on a bench supply through the flat-cable socket, the rails
+  at their test points, nothing warm. With 3.3 V off and 5 V on, +5VA and +3V3A are off.
+- The codec at 0x50, configured from userspace (design.md, "Linux", route 2); the overlay in
+  `overlay/`; playback, capture, loopback. GPIO2 reading the guitar socket's plug contact.
+- The relay from the RELAY line; the bypass at rest; EXT FS's two lines at the cable.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.
-- **Done when** the pedal plays through the board in the box, with every control working.
+- **Done when** the pedal plays through the board in the box, bypass and both inputs working.
 
 ## Phase 8: measure in the box
 
 Evidence into `bench-results/<date>-<what>/`.
 
-- Noise floor and headroom at the guitar input and the mic input, with the screen lit, the fans
-  running, the Pi under load, and each control and MIDI in use: the box is the test, not the
-  bench.
-- The case's ground bond: hum with it, without it, and in another place.
-- The right channel shorted by a mono plug: the left channel unaffected.
-- The bypass or mute at power-up, reboot, standby and power loss.
+- Noise floor and headroom at the guitar input and the mic input, with the screen lit, the Pi
+  under load, and each control and MIDI in use: the box is the test, not the bench.
+- The case's bond: hum with the guitar socket's alone, and, if the ferrules are joined, with all
+  three.
+- A mono plug in the output: the left channel unaffected.
+- The bypass at power-up, reboot, standby and with no power, with a loud guitar.
+- Pi-master against codec-master clocking, if X1 is fitted on one board.
 - **Done when** each number is in `bench-results/` and set against phase 1's predictions.
 
 ## Phase 9: what next
 
 What the box taught; whether the bigger case's board (two combo inputs, balanced outputs,
-phantom) is still wanted, and if so it starts from the phase 2 schematic and this board's lessons.
+phantom) is still wanted, and if so it starts from the phase 2 schematic in `hardware/` and this
+board's lessons.

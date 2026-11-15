@@ -1,0 +1,32 @@
+* Audio board, bypass at rest with the analogue 5 V off (Pi in standby, or the pedal unpowered).
+* The guitar's tip is joined to the output's tip by the relay, and still hangs on the buffer's input
+* network: C29 100 nF, R19 1 M to VM, R20 1 k into the OPA2197's input. With no supply, that input's
+* protection diodes go to rails sitting at 0 V. Does the dry signal clip?
+* Pickup: 3 H, 8 k, 500 pF of lead. Amplifier input: 1 M. Diodes: a generic junction (the OPA2197's
+* own are not published as a model), so read the result as the size of the effect, not a figure.
+.model DESD D(Is=1e-14 N=1 Rs=10 Cjo=3p)
+.param vpk=1
+Vsrc src 0 SIN(0 {vpk} 440)
+Lp src a 3
+Rp a tip 8k
+Ccab tip 0 500p
+Ramp tip 0 1Meg
+R18 tip 0 2.2Meg
+C29 tip n1 100n
+R19 n1 0 1Meg
+R20 n1 inp 1k
+* rails at 0 V: one diode up to V+, one down from V-
+D1 inp 0 DESD
+D2 0 inp DESD
+.tran 5u 60m 40m 5u
+.control
+foreach amp 0.1 0.3 1 2
+  alterparam vpk = $amp
+  reset
+  run
+  meas tran vmax MAX v(tip)
+  meas tran vmin MIN v(tip)
+  fourier 440 v(tip)
+end
+.endc
+.end
