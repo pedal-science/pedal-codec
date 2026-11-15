@@ -112,15 +112,16 @@ Each of these can change the schematic or a footprint, so they come before any c
   the case, and the same part is used for the output and EXT FS. If the ferrule is joined, all
   three bond; the answer goes into box-board.md, with what is done about it. While the part is
   out: which contact each of its six pins is, against KiCad's symbol.
-- The footprints against their makers' drawings: both Neutrik sockets, and the flat-cable socket
-  (the schematic names KiCad's AFA07-S16FCA-00; the part is the FCC). The flat-cable socket's
-  current rating per contact, from the same sheet.
+- The footprints against their makers' drawings: both Neutrik sockets and the flat-cable socket.
+  **Done 2026-11-15**, all three match (box-board.md, "Footprints checked"). Still to find: the
+  flat-cable socket's current rating per contact, which is not on its drawing.
 - A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks.
 - KiCad's "do not populate" attribute set on X1, C28 and R15.
 - The owner's decision on the mic's capacitors, and the schematic changed if it changes.
-- ngspice for what changed: the bypass relays' switching transient at the output socket, and the
-  right channel into a mono plug. The bypass with the buffer unpowered is done
-  ([`sim/box/`](../sim/box/README.md)), and is why there are two relays.
+- ngspice for what changed ([`sim/box/`](../sim/box/README.md)). **Done 2026-11-15:** the bypass
+  with the buffer unpowered, which is why there are two relays; and what is left on an output's
+  capacitor when the relays close, which is why its bleed is 10 kΩ and the firmware waits 10 s.
+  The right channel into a mono plug is 15 mA rms into its own 100 Ω, reasoned, not simulated.
 - The kicad-happy analysis and its ngspice run on the new project, every finding answered, as
   phase 2 did; the independent `kicad-design-review-agent` pass.
 - **Done when** each has its answer in box-board.md and ERC is still clean.
@@ -159,8 +160,9 @@ On the bench first, the audio board alone on a short flat cable, then in the box
   at their test points, nothing warm. With 3.3 V off and 5 V on, +5VA and +3V3A are off.
 - The codec at 0x50, configured from userspace (design.md, "Linux", route 2); the overlay in
   `overlay/`; playback, capture, loopback. GPIO2 reading the guitar socket's plug contact.
-- Both relays from the RELAY line; the bypass at rest, with no power and a loud guitar; EXT FS's
-  two lines at the cable.
+- Both relays from the RELAY line, held off for 10 s after the Pi's 3.3 V rises; the thump at
+  release measured; the bypass at rest, with no power and a loud guitar; EXT FS's two lines at
+  the cable.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.

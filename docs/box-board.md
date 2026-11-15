@@ -58,7 +58,7 @@ Checked on 2026-11-15:
 | U5 OPA2197 and the instrument path: 100 nF film, 1 MΩ to VM, 1 kΩ, follower, 3.83 kΩ | Input sheet: U10 | No relays after it: it goes straight to its driver |
 | U6 and U8 OPA1637, each with 4.99 kΩ and 220 pF feedback | Input sheet: U12 (and U9) | No |
 | U7 OPA1612 and the mic path: 2 × 47 µF 63 V back to back, 10 Ω, SS14 clamps, 22 Ω, 1.2 kΩ to VM, 249 Ω and 49.9 Ω, 4.99 kΩ | Input sheet: U11 | The phantom feed is gone; a 100 kΩ bleed per leg is added (below) |
-| U9 OPA1656, both halves: 10 µF, the differential-to-single-ended stage, 22 µF, 100 Ω, 100 kΩ bleed | Output sheet: U14, one per output | One dual for both channels; 10 kΩ in place of 1 kΩ + 9.09 kΩ (below) |
+| U9 OPA1656, both halves: 10 µF, the differential-to-single-ended stage, 22 µF, 100 Ω, a bleed | Output sheet: U14, one per output | One dual for both channels; 10 kΩ in place of 1 kΩ + 9.09 kΩ; the bleed is 10 kΩ, not 100 kΩ (below) |
 | K1 and K2 G6K-2F-Y, Q1 2N7002, D5 and D6 1N4148W | Output sheet: K7, Q10, D24 | Two relays on one driver, at the sockets, as a bypass, not two as mutes |
 
 Gone: the 40-pin header, the ID EEPROM and the mounting holes (the Pi board's now); the phantom
@@ -104,6 +104,13 @@ change.
   The gain goes from 0.743 to 0.750, 0.08 dB, and full scale from 1.45 to **1.50 Vrms (+5.7 dBu)**.
 - The 100 kΩ bias resistors to VM are gone: with no relay there, the stage itself holds the
   capacitors' DC.
+- **The bleed after each 22 µF is 10 kΩ, not phase 2's 100 kΩ**, and **the relays must not be
+  energised until 10 s after the Pi's 3.3 V comes up**. At power-on each stage rises to the
+  mid-rail and its capacitor charges through the bleed; whatever is still on it when K1 closes
+  steps onto the output. With 100 kΩ that is 0.6 V at 5 s and 0.1 V at 10 s; with 10 kΩ it is
+  24 mV at 5 s, 4 mV at 8 s and 1.3 mV at 10 s, and the rest is the mid-rail's own filter
+  settling ([`sim/box/`](../sim/box/README.md)). The cost is 0.09 dB of level. The pedal's boot
+  is being brought toward 5 s, so the wait is the firmware's to keep, not the boot's.
 
 **Bypass relays (K1 and K2).** Two, on one line and one driver (the owner, 2026-11-15; R10 had
 one). Both are drawn at rest.
@@ -111,9 +118,9 @@ one). Both are drawn at rest.
   Energised, the tip goes to the buffer, and K2's other pole grounds the bypass trace, so the
   trace can't carry the output back to the input while the effect is on.
 - **K1, at the output socket.** At rest the output's tip takes the bypass trace and its ring
-  rests on 100 Ω to ground. Energised, the poles take the left and right stages. The 100 kΩ
-  bleeds are on the stages' side of the contacts, so each coupling capacitor is settled before
-  the relay ever switches.
+  rests on 100 Ω to ground. Energised, the poles take the left and right stages. The bleeds
+  are on the stages' side of the contacts, so each coupling capacitor settles while the pedal is
+  still bypassed ("Output stages" above says how long that takes).
 - **Why two.** With one, the tip stayed on the buffer's input while bypassed, and with the
   analogue 5 V off (the pedal unpowered, or the Pi in standby) that input's protection diodes
   clipped a loud guitar: 35 % distortion at 1 V peak, simulated with a generic diode
@@ -154,21 +161,29 @@ From 2026-11-14, unchanged:
    the case too, 19 and 37 mm from the guitar socket's. Checked with a meter on the first part
    (plan.md, phase 4). If they are joined and the measurement in the box minds, the fix is an
    insulating washer set on two of the three, or a different part there.
-2. **The flat-cable socket's footprint is its sibling's.** The part is JUSHUO's AFA07-S16FCC-00
-   (C13744); KiCad's library has the AFA07-S16FCA-00, which the schematic names. Both are the
-   bottom-contact 2.5 mm AFA07; the land pattern is checked against the FCC's sheet before layout.
-3. **The two Neutrik footprints are KiCad's**, not yet checked against Neutrik's drawings.
-4. **The TAC5212's footprint lacks its four corner pads** (design.md, "Phase 2 schematic"). A
+2. **The flat-cable socket's current rating** is not on JUSHUO's drawing. The cable carries about
+   0.15 A on one conductor; the rating is found before layout.
+3. **The TAC5212's footprint lacks its four corner pads** (design.md, "Phase 2 schematic"). A
    footprint from TI's land pattern is made before layout.
-5. **The three unfitted parts are marked DNP only in their value text**, as in phase 2. KiCad's
+4. **The three unfitted parts are marked DNP only in their value text**, as in phase 2. KiCad's
    "do not populate" attribute is set on X1, C28 and R15 before any BOM is made.
-6. **Q1's gate gets 3.3 V.** The 2N7002's on-resistance is specified at 4.5 V and above. The two
+5. **Q1's gate gets 3.3 V.** The 2N7002's on-resistance is specified at 4.5 V and above. The two
    coils need 40 to 60 mA, and phase 2's relays were drawn the same way; checked at bring-up.
-7. **The supply rejection, gain and noise simulations were not rerun.** Phase 1's decks cover
+6. **The supply rejection, gain and noise simulations were not rerun.** Phase 1's decks cover
    the stages that are unchanged. What changed is small (0.08 dB at the outputs; the mic's bleeds,
    100 kΩ against a 2.4 kΩ input; the bypass, now a wire) and is reasoned here, not simulated.
-8. **The mic input's four 63 V capacitors** stay unless the owner prefers one 22 µF per leg
+7. **The mic input's four 63 V capacitors** stay unless the owner prefers one 22 µF per leg
    ("Decided while drawing").
+
+## Footprints checked against the makers' drawings (2026-11-15)
+
+| Part | Footprint in the schematic | Against | Result |
+|---|---|---|---|
+| NMJ6HCD2 | KiCad's `Jack_6.35mm_Neutrik_NMJ6HCD2_Horizontal` | Neutrik ST-NMJ6HCD2 | Matches: T, R and S in a row 6.35 mm apart, S nearest the panel; the three switch contacts 16.23 mm across; ⌀1.4 holes |
+| NCJ6FA-H | KiCad's `Jack_XLR-6.35mm_Neutrik_NCJ6FA-H_Horizontal` | Neutrik drawing 20004521 | Matches to 0.07 mm: five ⌀1.2 holes (1, 2, 3, S, R), ⌀1.6 for both T pins and G, three ⌀1.6 unplated peg holes; the same hand as the drawing |
+| AFA07-S16FCC-00 | KiCad's `JUSHUO_AFA07-S16FCA-00_1x16-1MP_P1.0mm_Horizontal` | JUSHUO's AFA07 drawing | The same part in other packing. In JUSHUO's numbering F is lower contact, the first C is matt tin, and the last letter is the packing: A is tape and reel, C is tube. Pads 0.6 × 1.8 mm at 1.0 mm, fitting pads 2.6 × 3.0 mm, as drawn. The cable is 0.3 mm thick |
+
+So the flat-cable socket is a lower-contact part, as box-design.md has it, and it comes in tubes.
 
 ## Power
 
@@ -239,8 +254,8 @@ checked again before ordering.
 | 2 | 3.83 kΩ | FRC0603F3831TS | C2933213 | R21, R22 |
 | 6 | 4.99 kΩ | 0603WAF4991T5E | C23046 | R23, R24, R36, R39–R41 |
 | 4 | 7.5 kΩ | 0603WAF7501T5E | C23234 | R43, R45, R49, R51 |
-| 8 | 10 kΩ | 0603WAF1002T5E | C25804 | R2–R4, R16, R42, R44, R48, R50 |
-| 5 | 100 kΩ | 0603WAF1003T5E | C25803 | R25, R30, R47, R53, R55 |
+| 10 | 10 kΩ | 0603WAF1002T5E | C25804 | R2–R4, R16, R42, R44, R47, R48, R50, R53 |
+| 3 | 100 kΩ | 0603WAF1003T5E | C25803 | R25, R30, R55 |
 | 3 | 1 MΩ | 0603WAF1004T5E | C22935 | R19, R26, R31 |
 | 1 | 2.2 MΩ | 0603WAF2204T5E | C22938 | R18 |
 

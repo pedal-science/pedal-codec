@@ -4060,7 +4060,7 @@
 				)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "10k"
 			(at 147.32 62.23 90)
 			(effects
 				(font
@@ -4095,7 +4095,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" "C25804"
 			(at 147.32 62.23 0)
 			(hide yes)
 			(effects
@@ -4104,7 +4104,7 @@
 				)
 			)
 		)
-		(property "MPN" "0603WAF1003T5E"
+		(property "MPN" "0603WAF1002T5E"
 			(at 147.32 62.23 0)
 			(hide yes)
 			(effects
@@ -4909,7 +4909,7 @@
 				)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "10k"
 			(at 147.32 118.11 90)
 			(effects
 				(font
@@ -4944,7 +4944,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25803"
+		(property "LCSC" "C25804"
 			(at 147.32 118.11 0)
 			(hide yes)
 			(effects
@@ -4953,7 +4953,7 @@
 				)
 			)
 		)
-		(property "MPN" "0603WAF1003T5E"
+		(property "MPN" "0603WAF1002T5E"
 			(at 147.32 118.11 0)
 			(hide yes)
 			(effects
