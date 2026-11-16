@@ -181,6 +181,10 @@ Each of these can change the schematic or a footprint, so they come before any c
 - The Pi board and the control board take their outlines from the same model. The Pi board faces
   the Pi, so its 40-pin socket is the mirror of an ordinary HAT's (pi-board.md, Open 1); its
   RP2350 regulator, L1 the right way round, is laid out as the Pico 2's.
+- The Pi board keeps its 17 × 17 mm hole under the processor (the owner, 2026-11-16), has the
+  fan's plug near its front edge, and leaves its rear edge between the USB-C and MIDI sockets
+  clear of tall parts, because the air comes in there (box-design.md, "Heat"). The control
+  board's two lamps are 9 mm in front of the buttons.
 - DRC against JLCPCB's 4-layer rules; the `emc` skill's check; a STEP export set into the case
   model to check every height and that the board tilts into the rear wall.
 - **Done when** DRC is clean and the owner has reviewed the plots and the board in the case model.
