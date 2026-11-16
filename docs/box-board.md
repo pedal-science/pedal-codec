@@ -161,10 +161,13 @@ From 2026-11-14, unchanged:
    the case too, 19 and 37 mm from the guitar socket's. Checked with a meter on the first part
    (plan.md, phase 4). If they are joined and the measurement in the box minds, the fix is an
    insulating washer set on two of the three, or a different part there.
-2. **The flat-cable socket's current rating** is not on JUSHUO's drawing. The cable carries about
-   0.15 A on one conductor; the rating is found before layout.
-3. **The TAC5212's footprint lacks its four corner pads** (design.md, "Phase 2 schematic"). A
-   footprint from TI's land pattern is made before layout.
+2. **The flat-cable socket's current rating: answered 2026-11-16.** 0.5 A a contact, from
+   LCSC's listing for the AFA07 series (JUSHUO's drawing gives none). The cable carries about
+   0.15 A, on pin 16.
+3. **The TAC5212's four corner pads: done 2026-11-16.** U4 now has
+   `pedal-codec:Texas_RGE0024R_VQFN-24-1EP_4x4mm_P0.5mm_EP2.1x2.1mm`, made through Konnect from
+   TI's RGE0024R land pattern. KiCad's `Texas_RGE0024H` had no corner pads and the wrong thermal
+   pad too: 2.7 mm, where the TAC5212's is 2.1 mm.
 4. **The three unfitted parts are marked DNP only in their value text**, as in phase 2. KiCad's
    "do not populate" attribute is set on X1, C28 and R15 before any BOM is made.
 5. **Q1's gate gets 3.3 V.** The 2N7002's on-resistance is specified at 4.5 V and above. The two
@@ -181,9 +184,24 @@ From 2026-11-14, unchanged:
 |---|---|---|---|
 | NMJ6HCD2 | KiCad's `Jack_6.35mm_Neutrik_NMJ6HCD2_Horizontal` | Neutrik ST-NMJ6HCD2 | Matches: T, R and S in a row 6.35 mm apart, S nearest the panel; the three switch contacts 16.23 mm across; ⌀1.4 holes |
 | NCJ6FA-H | KiCad's `Jack_XLR-6.35mm_Neutrik_NCJ6FA-H_Horizontal` | Neutrik drawing 20004521 | Matches to 0.07 mm: five ⌀1.2 holes (1, 2, 3, S, R), ⌀1.6 for both T pins and G, three ⌀1.6 unplated peg holes; the same hand as the drawing |
+| TAC5212 (U4) | `pedal-codec:Texas_RGE0024R_VQFN-24-1EP_4x4mm_P0.5mm_EP2.1x2.1mm`, new (2026-11-16) | TI's RGE0024R example board layout and stencil (4225246/A), in the TAC5212 datasheet | Made from them: 24 pads 0.24 × 0.6 mm at 0.5 mm, rows 3.8 mm apart; the four corner VSS pads A1–A4, 0.25 mm square, 3.45 mm apart; the 2.1 mm thermal pad with its paste as four 0.94 mm squares. TI's optional vias in the pad are left to the layout |
 | AFA07-S16FCC-00 | KiCad's `JUSHUO_AFA07-S16FCA-00_1x16-1MP_P1.0mm_Horizontal` | JUSHUO's AFA07 drawing | The same part in other packing. In JUSHUO's numbering F is lower contact, the first C is matt tin, and the last letter is the packing: A is tape and reel, C is tube. Pads 0.6 × 1.8 mm at 1.0 mm, fitting pads 2.6 × 3.0 mm, as drawn. The cable is 0.3 mm thick |
 
 So the flat-cable socket is a lower-contact part, as box-design.md has it, and it comes in tubes.
+
+## kicad-happy's analysis (2026-11-16)
+
+kicad-happy 2.3.1's `analyze_schematic.py` and its ngspice pass (`simulate_subcircuits.py`), run as
+phase 2's were: 0 errors, 4 warnings, 63 info findings; 34 subcircuits simulated, all pass. Every
+warning, and the info findings that look like faults, answered:
+
+| Finding (rule) | Answer |
+|---|---|
+| No `datasheets/` directory beside the project (DS-002) | The pinouts were read from the makers' PDFs, kept outside the repository as the rules ask (schematic-review.md lists phase 2's); the new footprints name the drawings they came from |
+| No pull-ups on SDA and SCL (PU-001) | By design: the Pi's own 1.8 kΩ pull-ups on GPIO 2 and 3, across the cable |
+| +5V_RLY has no declared source (RS-001) | FB1, the ferrite from +5V, is its source; the analyzer doesn't count a ferrite as one |
+| U1's QOD "pull-up" is 0 Ω (PU-001, info) | By design, as in phase 2: QOD tied to VOUT is the quickest discharge |
+| Four op-amp stages of "unknown" configuration (OA-DET, info) | The followers, the mid-rail buffer and the differential stages, which the detector doesn't classify; phase 1's decks simulate them |
 
 ## Power
 

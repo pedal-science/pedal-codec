@@ -57,6 +57,12 @@ and every LCSC number is the MPN it names, in stock.
 | SW2, SW3, Kinghelm KH-12X12X12H-TJ | `pedal-codec:SW_Kinghelm_KH-12X12X12H-TJ`, new | Kinghelm's drawing | Made from it: four 1.5 mm holes on 12.5 × 5.0 mm. KiCad's `SW_PUSH-12mm` has the same grid with 1.3 mm holes |
 | J1, JUSHUO AFA07-S16FCC-00 | KiCad's `JUSHUO_AFA07-S16FCA-00_1x16-1MP_P1.0mm_Horizontal` | JUSHUO's drawing | As on the audio board (box-board.md) |
 
+## kicad-happy's analysis (2026-11-16)
+
+kicad-happy 2.3.1's `analyze_schematic.py` and its ngspice pass: 0 errors, 1 warning (no
+`datasheets/` directory, answered as for the audio board), 9 info findings; the six filters
+simulated, all pass.
+
 ## Parts
 
 | Qty | Value | MPN | LCSC | Where |

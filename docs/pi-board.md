@@ -27,28 +27,43 @@ design with RP2350* names.
 
 | Sheet | Holds |
 |---|---|
-| USB-C power and the Pi header | J1, the USB-C socket, with F1 (4 A), D1 (SMAJ5.0A), 100 µF and 10 µF, 5.1 kΩ on each CC and the shell's 1 MΩ ‖ 10 nF; J2, the Pi's 40-pin socket, with 33 Ω on the three I2S lines the Pi drives; U1, the ID EEPROM; four M2.5 holes |
+| USB-C power and the Pi header | J1, the USB-C socket, with D1 (SMAJ5.0A), 10 µF, 5.1 kΩ on each CC and the shell's 1 MΩ ‖ 10 nF; U6, the eFuse (TPS259470A) that feeds the Pi's 5 V, with its divider, current-limit resistor and slew capacitor, and 100 µF after it; J2, the Pi's 40-pin socket, with 33 Ω on the three I2S lines the Pi drives; U1, the ID EEPROM; four M2.5 holes |
 | RP2350 | U4 (AP2112K-3.3), the RP2350's own 3.3 V (VDD); U2, the RP2350A, laid out as Raspberry Pi's minimal design: decoupling, VREG_AVDD's 33 Ω and 4.7 µF, L1 and the core supply's capacitors, U3 (W25Q32JV flash), Y1 (12 MHz, 15 pF, 1 kΩ); Q1, through which the Pi resets it; USB and BOOTSEL to test pads; the resistors to the Pi's UART and SWD; the Pi's 3.3 V sense |
 | Links, footswitches and MIDI | J3, the audio link, in box-design.md's pin order; J4, the control link; J5–J7, the footswitches' plugs, with their pull-ups and filters; EXT FS's pull-ups; the buttons' lights' resistors; J8, MIDI in, with U5 (H11L1) |
 
-Checked on 2026-11-16:
+Checked on 2026-11-16, and again after the eFuse went in the same day:
 
 | Check | Result |
 |---|---|
 | KiCad ERC, every severity (`kicad-cli sch erc --severity-all`, and Konnect's `run_erc`) | 0 errors, 0 warnings |
 | Sheet pins (Konnect's `validate_sheet_pins`) | 0 issues; the sheets join by global labels |
-| Netlist (`kicad-cli sch export netlist`) | 113 nets, none with one pin. Every pin left open is a flagged no-connect: the USB-C's data and SBU pins, the Pi's unused GPIO, the RP2350's GPIO 17–29, U4's NC pin, U5's pin 3, the MIDI socket's sleeve and two break contacts, the control link's pin 14 |
-| `LCSC`, `MPN` and a footprint on every symbol | 100 of 100 (the four holes and ten test points carry `none`, as in phase 2) |
+| Netlist (`kicad-cli sch export netlist`) | 120 nets, none with one pin. Every pin left open is a flagged no-connect: the USB-C's data and SBU pins, U6's FLT, AUXOFF and ITIMER, the Pi's unused GPIO, the RP2350's GPIO 17–29, U4's NC pin, U5's pin 3, the MIDI socket's sleeve and two break contacts, the control link's pin 14 |
+| `LCSC`, `MPN` and a footprint on every symbol | 105 of 105 (the four holes and ten test points carry `none`, as in phase 2) |
 | Every LCSC number against JLCPCB's parts list (Konnect's copy) | Each is the MPN and package the schematic says, and in stock |
 
 ## Decided while drawing
 
 1. **Power: any USB-C supply gives 5 V, and nothing is negotiated.** 5.1 kΩ on each CC asks for 5 V;
    the source's own advertisement sets the current, 3 A from a 3 A supply. The Pi is fed through
-   its header's 5 V pins, as a HAT+ power supply does (box-design.md, "Power", decided by the
-   owner). F1, a 4 A fast fuse, and D1, a 5 V TVS, are at the socket. The shell goes to ground
-   through 1 MΩ ‖ 10 nF, so a cable's shield is tied to ground at radio frequencies but never
-   joins ground to the case at DC; the guitar socket stays the one bond.
+   its header's 5 V pins (box-design.md, "Power", decided by the owner), which makes this a
+   **Power HAT+** in Raspberry Pi's HAT+ specification (chapters 4 and 6). That asks for two
+   things the first draft lacked, and USB-C asks a third, so U6 went in on 2026-11-16, in place of
+   a 4 A fuse:
+   - *It must only source current, and survive the Pi's own USB-C supply being plugged in too.*
+     U6, TI's TPS259470A eFuse, has back-to-back FETs: current flows from the USB-C socket to the
+     Pi and never back, so a supply on the Pi's own socket can't drive this one's.
+   - *At least 3 A at 5.1 V.* U6's 28 mΩ costs about 0.09 V at 3 A, where a Schottky diode would
+     cost 0.4 V; the supply's own voltage is the rest. A Raspberry Pi 27 W
+     supply gives 5.1 V; an ordinary 5 V one leaves the Pi about 4.9 V at full load.
+   - *USB-C's limit of 10 µF across a power sink's VBUS*, which the Pi and the audio board's
+     hundreds of µF would break: U6 starts slowly (2.2 nF on DVDT, about 5 ms to 5 V), so only
+     C1's 10 µF is on the socket at plug-in; the 100 µF is after U6.
+
+   U6's settings, from TI's equations: on above 4.36 V and off above 6.13 V (100 kΩ, 11 kΩ,
+   27 kΩ from VBUS on EN/UVLO and OVLO); current limit about 4 A (820 Ω on ILM, 3334 / R);
+   ITIMER open, so it limits at once; FLT and AUXOFF unused. D1, a 5 V TVS, stays at the socket.
+   The shell goes to ground through 1 MΩ ‖ 10 nF, so a cable's shield is tied to ground at radio
+   frequencies but never joins ground to the case at DC; the guitar socket stays the one bond.
 2. **33 Ω on the I2S lines the Pi drives** (BCLK, FSYNC and I2S_FROM_PI), at the header, as
    box-design.md asks now that they cross a cable. I2S_TO_PI has its 33 Ω at the codec.
 3. **The ID EEPROM is phase 2's**: a CAT24C32 on ID_SD and ID_SC with 3.9 kΩ pull-ups, its write
@@ -86,6 +101,13 @@ Checked on 2026-11-16:
 12. **L1's polarity.** The footprint's pad 1 is the inductor's dot (+), and pad 1 is at VREG_LX,
     so current enters at the dot. Raspberry Pi's guide asks for its own orientation exactly, so
     the layout checks it against the Pico 2's or the minimal design's files before it is placed.
+13. **The ID EEPROM's address, and what the overlay tells the Pi.** The board uses GPIO 2–27, so its
+    EEPROM is the HAT+ Standard class at 0x50 (A0–A2 to ground, as drawn); the Power HAT+
+    addresses, 0x52 and 0x53, are only for boards that use none of those GPIO. The overlay, written
+    in phase 5, tells the Pi what the supply gives, as the specification's section 4.2 shows:
+    `hat_current_supply = <3000>` (mA) in a `/chosen/power` node.
+14. **The flat-cable sockets** carry 0.5 A a contact (LCSC's listing for the AFA07 series; JUSHUO's
+    drawing gives no rating). The audio link's 5 V is about 0.15 A, on pin 16 alone.
 
 ## The owner's decisions that bind this board
 
@@ -98,10 +120,10 @@ the Compute Module is for later (6); sockets soldered to the boards and nutted t
    the Pi's top, and seen from above the socket's pins are the mirror of an ordinary HAT's. The
    footprint is placed so that pin 1 meets the Pi's pin 1, checked in the case model before the
    layout goes anywhere.
-2. **Telling the Pi what this supply gives.** A Pi fed through its header can't negotiate with
-   the supply, and its firmware then limits what its USB ports may draw. How a HAT+ that powers
-   the Pi says how much it gives (an EEPROM setting, or the Pi's own configuration) is checked in
-   Raspberry Pi's HAT+ specification before the EEPROM is written (phase 5).
+2. **A supply that gives less than 3 A.** The Pi is told 3 A (Decided 13), and nothing here knows
+   what the supply on the socket offers. A USB-C source says so on CC (default, 1.5 A or 3 A, by
+   the voltage across the 5.1 kΩ); two of the RP2350's free ADC pins could read CC1 and CC2, and
+   the firmware could warn before the engine starts. Not drawn; for the owner to decide.
 3. **Which contact is tip and which is ring on the MIDI socket** was read from XKB's cut-away view:
    the spring on terminal 5 touches the plug 7 to 11 mm in, where a plug's tip is, and the one on
    terminal 2 at 3 to 5 mm, where its ring is. The drawing doesn't say it in words. A plug and a
@@ -111,9 +133,7 @@ the Compute Module is for later (6); sockets soldered to the boards and nutted t
    1.5 × 0.8 mm). Konnect can't draw a slotted hole, so each is a round hole as long as the slot,
    1.5 mm, which the terminal fits. The owner may redraw them as slots in KiCad's footprint editor
    before ordering.
-5. **The flat-cable sockets' current rating** is not on JUSHUO's drawing (box-board.md, Open 2).
-   The audio link's 5 V is about 0.15 A on one conductor.
-6. **The current into a Pi in standby** is measured at bring-up: the RP2350's SWD pins have pulls
+5. **The current into a Pi in standby** is measured at bring-up: the RP2350's SWD pins have pulls
    of their own, and a pull-up can push tens of microamps through 330 Ω into an unpowered Pi's
    GPIO.
 
@@ -124,22 +144,38 @@ the Compute Module is for later (6); sockets soldered to the boards and nutted t
 | USB-C, SHOU HAN TYPE-C 16PIN L8.35 | KiCad's `USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal` | SHOU HAN's drawing (on LCSC's C5379909 page) | Matches within 0.07 mm: twelve pads, the inner eight at 0.5 mm, the outer pairs 6.33 and 4.73 mm apart (6.4 and 4.8 in the footprint), the pad row 1.14 mm behind the pegs (1.075); the shell's four legs 8.64 mm across and 4.18 mm apart, in slots 1.7 and 1.4 mm long; the pegs 5.78 mm apart. The body is 8.35 mm long, about 1 mm longer at the mouth than the footprint's outline. HRO's footprint, drawn first, has 1.2 mm rear slots |
 | MIDI in, XKB PJ-324M0 | `pedal-codec:Jack_3.5mm_XKB_PJ-324M0_Horizontal`, new | XKB drawing X-PJ-324M0 rev A1 | Made from its PCB layout: the five terminals where it puts them, round 1.5 mm holes for its slots (Open 4); pads named for the symbol, S, R, RN, T and TN |
 | L1, Abracon AOTA-B201610S3R3-101-T | `pedal-codec:L_Abracon_AOTA-B201610`, new | Abracon's datasheet, rev A | Made from its land pattern: two 1.0 × 1.6 mm pads, 1.0 mm apart. Pad 1 is the dot |
+| U6, TI TPS259470ARPWR | `pedal-codec:Texas_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm`, new | TI's RPW0010A example board layout and stencil (4225183/A) in the TPS25947 datasheet | Made from them: the L-shaped corner pads as two rectangles each, the IN and OUT bars 0.3 × 2.4 mm, paste as TI's stencil. KiCad has neither this footprint nor the symbol, which is in `pedal-codec.kicad_sym` |
 | U5, Everlight H11L1S(TA) | KiCad's `SMDIP-6_W9.53mm` | Everlight's H11LX datasheet, "Recommended pad layout for surface mount leadform" | KiCad's pads (2.0 × 1.78 mm, rows 9.53 mm apart) cover Everlight's (1.83 × 1.71 mm, 9.24 mm) except 0.06 mm at the inner edge. Everlight calls its layout a reference |
 
 The rest are standard packages in KiCad's own footprints: the RP2350A's QFN-60 with its 3.4 mm
-pad, the SOIC-8s, SOT-23 and SOT-23-5, the 3225 crystal, SMA, a 1206 fuse, the 2 × 20 socket, and
+pad, the SOIC-8s, SOT-23 and SOT-23-5, the 3225 crystal, SMA, the 2 × 20 socket, and
 the JST and JUSHUO sockets, whose footprints KiCad names for those parts. The JUSHUO one was
 checked for the audio board (box-board.md).
 
+## kicad-happy's analysis (2026-11-16)
+
+kicad-happy 2.3.1's `analyze_schematic.py` and its ngspice pass, on the board as it is now (with
+U6): 1 error, 2 warnings, 46 info findings; 19 subcircuits simulated (the dividers, filters, the
+crystal's load), all pass. Answered:
+
+| Finding (rule) | Answer |
+|---|---|
+| U2's VREG_AVDD has no DC path to a power rail (PP-001, error) | It is fed from VDD through R14, 33 Ω, with C18, 4.7 µF: the RC filter Raspberry Pi's guide asks for. VREG_AVDD draws about 200 µA, so R14 drops about 7 mV. The analyzer accepts only 0 Ω, inductors and ferrites as a supply path. Not an issue |
+| J8, the MIDI socket, has no ground pin (CG-AUD) | By design: a MIDI input leaves the shield open, and the current loop goes through the optocoupler's LED, with nothing referred to this board's ground |
+| No `datasheets/` directory (DS-002) | As for the audio board (box-board.md) |
+| Eleven nets "with one pin": SDA, SCL, I2S_TO_PI and the Pi's UART, SWD and RUN lines (NT-001, info) | The analyzer doesn't count the 40-pin socket's pins (J2), as in phase 2's review. KiCad's own netlist has J2 on each of them and no net with one pin |
+| U6 taken for an LDO (PR-DET, info) | It is the eFuse; nothing to answer |
+
 ## Power
 
-All from the USB-C socket's 5 V. The Pi takes most of it; the audio board about 0.15 A over the
+All from the USB-C socket's 5 V, through U6. The Pi takes most of it; the audio board about 0.15 A over the
 link; the RP2350 side, through U4, about 70 mA at most (the RP2350, the optocoupler, the pull-ups
 and the lights), which U4 drops to 3.3 V with about 0.12 W.
 
 | Rail | From | Feeds |
 |---|---|---|
-| +5V | USB-C, through F1 | The Pi (header pins 2 and 4), the audio board (link pin 16), U4 |
+| VBUS | The USB-C socket | U6, D1 and C1 (10 µF) only |
+| +5V | VBUS, through U6 | The Pi (header pins 2 and 4), the audio board (link pin 16), U4; C3 (100 µF) |
 | VDD | +5V, U4 | The RP2350, its flash, the optocoupler, every pull-up, the control board (control link pin 16) |
 | DVDD | The RP2350's own regulator, L1 | Its core |
 | +3V3 | The Pi | The ID EEPROM, the audio board (link pin 14), the RP2350's sense of it |
@@ -155,6 +191,7 @@ All from JLCPCB's parts list; checked there on 2026-11-16 (stock again before or
 | 2 | Flat-cable socket, 16-way 1.0 mm | AFA07-S16FCC-00 | C13744 | J3, J4 |
 | 3 | JST XH, 2-way, side entry | S2B-XH-A(LF)(SN) | C157931 | J5–J7 |
 | 1 | 3.5 mm stereo socket | PJ-324M0 | C2884986 | J8 |
+| 1 | eFuse, 5.5 A, reverse blocking | TPS259470ARPWR | C3662799 | U6 |
 | 1 | RP2350A | RP2350A | C42411118 | U2 |
 | 1 | 32 Mbit flash | W25Q32JVSSIQ | C179173 | U3 |
 | 1 | 3.3 V LDO, 600 mA | AP2112K-3.3TRG1 | C51118 | U4 |
@@ -162,30 +199,33 @@ All from JLCPCB's parts list; checked there on 2026-11-16 (stock again before or
 | 1 | Optocoupler, Schmitt output | H11L1S(TA) | C78589 | U5 |
 | 1 | 12 MHz crystal | ABM8-272-T3 | C20625731 | Y1 |
 | 1 | 3.3 µH, polarity marked | AOTA-B201610S3R3-101-T | C42411119 | L1 |
-| 1 | Fuse, 4 A fast, 1206 | 0466004.NRHF | C187596 | F1 |
 | 1 | TVS, 5 V | SMAJ5.0A/TR13 | C78401 | D1 |
 | 1 | 1N4148W | 1N4148W | C81598 | D2 |
 | 1 | 2N7002 | 2N7002 | C8545 | Q1 |
-| 1 | 100 µF 16 V | RVT100UF16V67RV0016 | C2887276 | C1 |
-| 3 | 10 µF 0805 | CL21A106KAYNNNE | C15850 | C2, C4, C25 |
-| 2 | 1 µF | CL10A105KA8NNNC | C5673 | C6, C7 |
-| 3 | 4.7 µF 0402 | CL05A475MP5NRNC | C23733 | C16–C18 |
-| 5 | 100 nF 0603 | CC0603KRX7R9BB104 | C14663 | C5, C26–C29 |
-| 12 | 100 nF 0402 | CL05B104KO5NNNC | C1525 | C8–C15, C19–C22 |
-| 1 | 10 nF | 0603B103K500NT | C57112 | C3 |
-| 2 | 15 pF C0G | 0402CG150J500NT | C1548 | C23, C24 |
-| 2 | 27 Ω | 0402WGF270JTCE | C25100 | R14, R15 |
-| 1 | 33 Ω 0402 | 0402WGF330JTCE | C25105 | R10 |
-| 3 | 33 Ω 0603 | 0603WAF330JT5E | C23140 | R4–R6 |
-| 1 | 220 Ω | 0603WAF2200T5E | C22962 | R37 |
-| 4 | 330 Ω | 0603WAF3300T5E | C23138 | R21, R22, R35, R36 |
-| 2 | 1 kΩ 0402 | 0402WGF1001TCE | C11702 | R17, R18 |
-| 10 | 1 kΩ 0603 | 0603WAF1001T5E | C21190 | R9, R12, R19, R20, R25, R27, R29, R31, R33, R38 |
-| 2 | 3.9 kΩ | 0603WAF3901T5E | C23018 | R7, R8 |
-| 2 | 5.1 kΩ | 0402WGF5101TCE | C25905 | R1, R2 |
-| 2 | 10 kΩ 0402 | 0402WGF1002TCE | C25744 | R11, R16 |
-| 6 | 10 kΩ 0603 | 0603WAF1002T5E | C25804 | R23, R26, R28, R30, R32, R34 |
-| 2 | 100 kΩ | 0603WAF1003T5E | C25803 | R13, R24 |
-| 1 | 1 MΩ | 0603WAF1004T5E | C22935 | R3 |
+| 1 | 100 µF 16 V | RVT100UF16V67RV0016 | C2887276 | C3 |
+| 3 | 10 µF 0805 | CL21A106KAYNNNE | C15850 | C1, C5, C26 |
+| 2 | 1 µF | CL10A105KA8NNNC | C5673 | C7, C8 |
+| 3 | 4.7 µF 0402 | CL05A475MP5NRNC | C23733 | C17–C19 |
+| 5 | 100 nF 0603 | CC0603KRX7R9BB104 | C14663 | C6, C27–C30 |
+| 12 | 100 nF 0402 | CL05B104KO5NNNC | C1525 | C9–C16, C20–C23 |
+| 1 | 10 nF | 0603B103K500NT | C57112 | C4 |
+| 1 | 2.2 nF | 0603B222K500NT | C1604 | C2 |
+| 2 | 15 pF C0G | 0402CG150J500NT | C1548 | C24, C25 |
+| 2 | 27 Ω | 0402WGF270JTCE | C25100 | R18, R19 |
+| 1 | 33 Ω 0402 | 0402WGF330JTCE | C25105 | R14 |
+| 3 | 33 Ω 0603 | 0603WAF330JT5E | C23140 | R8–R10 |
+| 1 | 220 Ω | 0603WAF2200T5E | C22962 | R41 |
+| 4 | 330 Ω | 0603WAF3300T5E | C23138 | R25, R26, R39, R40 |
+| 1 | 820 Ω | 0603WAF8200T5E | C23253 | R4 |
+| 2 | 1 kΩ 0402 | 0402WGF1001TCE | C11702 | R21, R22 |
+| 10 | 1 kΩ 0603 | 0603WAF1001T5E | C21190 | R13, R16, R23, R24, R29, R31, R33, R35, R37, R42 |
+| 2 | 3.9 kΩ | 0603WAF3901T5E | C23018 | R11, R12 |
+| 2 | 5.1 kΩ | 0402WGF5101TCE | C25905 | R5, R6 |
+| 2 | 10 kΩ 0402 | 0402WGF1002TCE | C25744 | R15, R20 |
+| 6 | 10 kΩ 0603 | 0603WAF1002T5E | C25804 | R27, R30, R32, R34, R36, R38 |
+| 1 | 11 kΩ | 0603WAF1102T5E | C25950 | R2 |
+| 1 | 27 kΩ | 0603WAF2702T5E | C22967 | R3 |
+| 3 | 100 kΩ | 0603WAF1003T5E | C25803 | R1, R17, R28 |
+| 1 | 1 MΩ | 0603WAF1004T5E | C22935 | R7 |
 
-86 parts, four holes (H1–H4) and ten test pads (TP1–TP10).
+91 parts, four holes (H1–H4) and ten test pads (TP1–TP10).

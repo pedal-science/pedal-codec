@@ -20,12 +20,18 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
    and one decision still open from the audio board, whether the mic input keeps its four 63 V
    capacitors (box-board.md, "Decided while drawing"). The control link's pin order and the
    RP2350's pin map are in box-design.md, for the firmware to follow.
-3. **Next here:** phase 4's checks. Two need parts in the owner's hand: one NMJ6HCD2 (is its
-   ferrule joined to its sleeve?) and one PJ-324M0 (which contact is tip, which ring?).
+3. **Next here:** what is left of phase 4. Two checks need parts in the owner's hand: one
+   NMJ6HCD2 (is its ferrule joined to its sleeve?) and one PJ-324M0 (which contact is tip,
+   which ring?). The kicad-happy analysis of all three is done, every finding answered; the
+   independent design review runs when the owner asks for it.
+4. **Changed on 2026-11-16, after those PDFs were first exported:** the Pi board's USB-C input now goes
+   through an eFuse, as the HAT+ specification asks of a board that powers the Pi
+   (pi-board.md, Decided 1), and the audio board's codec has TI's own footprint with its corner
+   pads.
 
-Last changed 2026-11-16: the Pi board's and the control board's schematics (phase 3), four
-footprints of our own in `hardware/pedal-codec.pretty/`, and the control link and the RP2350's
-pins in box-design.md. 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
+Last changed 2026-11-16: the Pi board's and the control board's schematics (phase 3), footprints
+of our own in `hardware/pedal-codec.pretty/`, the control link and the RP2350's pins in
+box-design.md; then phase 4's desk checks, which added the eFuse and the codec's footprint. 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
 described one L-shaped board on a ribbon with every control on it, which the box's design
 replaced on 2026-11-14 with an audio board, a Pi board and a control board. Before that, 2026-11-14: phase 2's
 schematic of the full-size HAT, seven sheets, reviewed and redrawn as circuits (`a67618f`), which
@@ -129,8 +135,10 @@ Each of these can change the schematic or a footprint, so they come before any c
   the MIDI socket, L1, the encoder and the buttons have footprints of our own in
   `hardware/pedal-codec.pretty/`, made through Konnect from the makers' drawings, with round holes
   where the makers draw slots, since Konnect can't draw a slot (pi-board.md, control-board.md).
-  Still to find: the flat-cable socket's current rating per contact, which is not on its drawing.
-- A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks.
+  The flat-cable socket's current rating: 0.5 A a contact, from LCSC's listing for the series
+  (**answered 2026-11-16**; JUSHUO's drawing gives none).
+- A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks. **Done
+  2026-11-16** (box-board.md, Open 3); KiCad's had the wrong thermal pad as well.
 - KiCad's "do not populate" attribute set on X1, C28 and R15.
 - The owner's decision on the mic's capacitors, and the schematic changed if it changes.
 - ngspice for what changed ([`sim/box/`](../sim/box/README.md)). **Done 2026-11-15:** the bypass
@@ -138,9 +146,14 @@ Each of these can change the schematic or a footprint, so they come before any c
   capacitor when the relays close, which is why its bleed is 10 kΩ and the firmware waits 10 s.
   The right channel into a mono plug is 15 mA rms into its own 100 Ω, reasoned, not simulated.
 - The kicad-happy analysis and its ngspice run on the three projects, every finding answered, as
-  phase 2 did; the independent `kicad-design-review-agent` pass.
-- How a HAT+ that powers the Pi tells it so, from Raspberry Pi's HAT+ specification, before the
-  EEPROM's contents are written (pi-board.md, Open 2).
+  phase 2 did. **Done 2026-11-16**: one error and seven warnings across the three, each answered
+  in its board's page, none a fault; every simulated subcircuit passes. Still to run: the
+  independent `kicad-design-review-agent` pass, when the owner asks for it.
+- How a HAT+ that powers the Pi tells it so, from Raspberry Pi's HAT+ specification. **Answered
+  2026-11-16** (pi-board.md, Decided 1 and 13): the EEPROM stays at 0x50, the Standard class, and
+  the overlay says `hat_current_supply = <3000>`. The specification also requires a Power HAT+
+  to pass current one way only and to survive the Pi's own supply being plugged in, which the
+  first draft didn't: the Pi board gained U6, an eFuse (TPS259470A), in place of its fuse.
 - **Done when** each has its answer in box-board.md, pi-board.md or control-board.md, and ERC is
   still clean.
 
