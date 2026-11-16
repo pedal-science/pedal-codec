@@ -5,33 +5,34 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **All three of the box's schematics are drawn**, step 4 of the box's plan
-   ([../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md)), each a KiCad
-   project of its own, ERC clean, with its PDF beside it:
-   - the audio board, [`hardware/audio-board/audio-board.pdf`](../hardware/audio-board/audio-board.pdf),
-     which the owner has looked over (2026-11-15: "looks good to my untrained eye"), with the
-     second bypass relay the owner asked for; [box-board.md](box-board.md) is its record;
-   - the Pi board, [`hardware/pi-board/pi-board.pdf`](../hardware/pi-board/pi-board.pdf) (2026-11-16):
-     USB-C power, the ID EEPROM, the RP2350, MIDI in, the footswitches' plugs and both flat-cable
-     sockets; [pi-board.md](pi-board.md);
-   - the control board, [`hardware/control-board/control-board.pdf`](../hardware/control-board/control-board.pdf)
-     (2026-11-16): the encoder and the two buttons; [control-board.md](control-board.md).
-2. **For the owner:** to look over the Pi board and the control board, as with the audio board,
-   and one decision still open from the audio board, whether the mic input keeps its four 63 V
-   capacitors (box-board.md, "Decided while drawing"). The control link's pin order and the
-   RP2350's pin map are in box-design.md, for the firmware to follow.
-3. **Next here:** what is left of phase 4. Two checks need parts in the owner's hand: one
-   NMJ6HCD2 (is its ferrule joined to its sleeve?) and one PJ-324M0 (which contact is tip,
-   which ring?). The kicad-happy analysis of all three is done, every finding answered; the
-   independent design review runs when the owner asks for it.
-4. **Changed on 2026-11-16, after those PDFs were first exported:** the Pi board's USB-C input now goes
-   through an eFuse, as the HAT+ specification asks of a board that powers the Pi
-   (pi-board.md, Decided 1), and the audio board's codec has TI's own footprint with its corner
-   pads.
+1. **All three of the box's schematics are drawn and the owner has looked over all three**
+   (the audio board on 2026-11-15, the Pi board and the control board on 2026-11-16: "look fine
+   to my untrained eye"). Phase 3 is done. Each is a KiCad project of its own, ERC clean, with
+   its PDF beside it: [`audio-board.pdf`](../hardware/audio-board/audio-board.pdf)
+   ([box-board.md](box-board.md)), [`pi-board.pdf`](../hardware/pi-board/pi-board.pdf)
+   ([pi-board.md](pi-board.md)) and
+   [`control-board.pdf`](../hardware/control-board/control-board.pdf)
+   ([control-board.md](control-board.md)).
+2. **The owner's decisions of 2026-11-16 are drawn**, after those PDFs were looked over, so the
+   PDFs now show a little more than the owner saw:
+   - a red lamp in front of each button, on the control board (control-board.md, Decided 5, 6);
+   - the mic input has one 22 µF capacitor in each leg, not two 63 V parts back to back, because
+     the pairs were only for phantom power (box-board.md, "Mic input");
+   - the RP2350 reads the USB-C socket's CC lines, to warn of a supply under 3 A (pi-board.md,
+     Decided 15);
+   - a fan is assumed: a plug for it on the Pi board, switched by the Pi's GPIO 12 (pi-board.md,
+     Decided 16); its place and the vents are in box-design.md, "Heat".
+3. **Next here:** what is left of phase 4, which is two checks that need parts in the owner's
+   hand: one NMJ6HCD2 (is its ferrule joined to its sleeve?) and one PJ-324M0 (which contact is
+   tip, which ring?). Both parts are on the order list in
+   [../../pedal.project/docs/box-order.md](../../pedal.project/docs/box-order.md). Then phase 5,
+   layout, whose outlines come from the case model. The independent design review runs when the
+   owner asks for it.
 
 Last changed 2026-11-16: the Pi board's and the control board's schematics (phase 3), footprints
 of our own in `hardware/pedal-codec.pretty/`, the control link and the RP2350's pins in
-box-design.md; then phase 4's desk checks, which added the eFuse and the codec's footprint. 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
+box-design.md; then phase 4's desk checks, which added the eFuse and the codec's footprint; then
+the owner's decisions of that day (the lamps, the mic's capacitors, the supply sensing, the fan). 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
 described one L-shaped board on a ribbon with every control on it, which the box's design
 replaced on 2026-11-14 with an audio board, a Pi board and a control board. Before that, 2026-11-14: phase 2's
 schematic of the full-size HAT, seven sheets, reviewed and redrawn as circuits (`a67618f`), which
@@ -114,8 +115,9 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 - **Done when** the owner has reviewed the schematics as PDFs.
 - **Status (2026-11-16):** the audio board done, and seen by the owner, who asked for the second
   bypass relay (2026-11-15); `hardware/audio-board/audio-board.pdf` is the export, box-board.md
-  the record. The Pi board and the control board drawn on 2026-11-16, ERC clean, waiting for the
-  owner's look: `pi-board.pdf` and `control-board.pdf`, with pi-board.md and control-board.md.
+  the record. The Pi board and the control board drawn on 2026-11-16, ERC clean, and looked over
+  by the owner the same day: `pi-board.pdf` and `control-board.pdf`, with pi-board.md and
+  control-board.md. **Done.**
 
 ## Phase 4: checks before layout
 
@@ -140,14 +142,20 @@ Each of these can change the schematic or a footprint, so they come before any c
 - A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks. **Done
   2026-11-16** (box-board.md, Open 3); KiCad's had the wrong thermal pad as well.
 - KiCad's "do not populate" attribute set on X1, C28 and R15.
-- The owner's decision on the mic's capacitors, and the schematic changed if it changes.
+- The owner's decision on the mic's capacitors, and the schematic changed if it changes. **Done
+  2026-11-16:** kept only if needed, and they were not, so one 22 µF 16 V in each leg
+  (box-board.md, "Mic input"; `sim/box/mic-coupling.cir`).
+- The owner's other decisions of 2026-11-16, drawn the same day: the lamps (control-board.md),
+  the supply sensing and the fan's plug (pi-board.md, Decided 15 and 16). ERC clean on all three,
+  and the kicad-happy analysis run again.
 - ngspice for what changed ([`sim/box/`](../sim/box/README.md)). **Done 2026-11-15:** the bypass
   with the buffer unpowered, which is why there are two relays; and what is left on an output's
   capacitor when the relays close, which is why its bleed is 10 kΩ and the firmware waits 10 s.
   The right channel into a mono plug is 15 mA rms into its own 100 Ω, reasoned, not simulated.
 - The kicad-happy analysis and its ngspice run on the three projects, every finding answered, as
-  phase 2 did. **Done 2026-11-16**: one error and seven warnings across the three, each answered
-  in its board's page, none a fault; every simulated subcircuit passes. Still to run: the
+  phase 2 did. **Done 2026-11-16**, and again after the owner's decisions were drawn: three errors
+  and nine warnings across the three, each answered in its board's page, none a fault; every
+  simulated subcircuit passes. Still to run: the
   independent `kicad-design-review-agent` pass, when the owner asks for it.
 - How a HAT+ that powers the Pi tells it so, from Raspberry Pi's HAT+ specification. **Answered
   2026-11-16** (pi-board.md, Decided 1 and 13): the EEPROM stays at 0x50, the Standard class, and
@@ -200,7 +208,8 @@ On the bench first, the audio board alone on a short flat cable, then in the box
 - The Pi board: USB-C power with no Pi on it (5 V and VDD at their test points, the RP2350
   running), then on the Pi: the ID EEPROM, the RP2350 flashed from the Pi over SWD and reset by
   it, the UART to the Pi, MIDI in, the footswitches, EXT FS and the control board; the current
-  into the Pi's 3.3 V in standby.
+  into the Pi's 3.3 V in standby; the two CC readings with a 3 A supply, a 1.5 A one and a plain
+  USB port, and the warning each should raise; the fan from GPIO 12 (`gpio-fan`); both lamps.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.
@@ -217,6 +226,9 @@ Evidence into `bench-results/<date>-<what>/`.
 - A mono plug in the output: the left channel unaffected.
 - The bypass at power-up, reboot, standby and with no power, with a loud guitar.
 - Pi-master against codec-master clocking, if X1 is fitted on one board.
+- The mic input's rejection of hum at 50 and 100 Hz, which depends on how well its two
+  capacitors match (`sim/box/mic-coupling.cir`).
+- The noise floor with the fan running and stopped.
 - **Done when** each number is in `bench-results/` and set against phase 1's predictions.
 
 ## Phase 9: what next

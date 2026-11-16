@@ -16,7 +16,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "8d1ea103-32c5-46e4-ac98-3b0b9bb87420")
+    (uuid "b01e6e47-ed21-4571-bed7-bea6a8ddb1df")
     (property "Sheetname" "Link and power"
       (at 25.4 37.465 0)
       (show_name no)
@@ -45,7 +45,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "08489ab8-35ac-4425-bf39-e8c29425e00a")
+    (uuid "01b0f062-b82e-4c5d-b077-823b42c42639")
     (property "Sheetname" "Codec"
       (at 88.9 37.465 0)
       (show_name no)
@@ -74,7 +74,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "0802b459-d4be-4980-bb1e-1038ecf10e6b")
+    (uuid "15195eac-cb6f-46fe-9219-572014f79539")
     (property "Sheetname" "Inputs"
       (at 152.4 37.465 0)
       (show_name no)
@@ -103,7 +103,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "229b29dd-7066-44b0-8cf9-8833df3a3a98")
+    (uuid "ecb88cfa-2dab-4595-ab83-97f7547a2252")
     (property "Sheetname" "Outputs, bypass and EXT FS"
       (at 215.9 37.465 0)
       (show_name no)

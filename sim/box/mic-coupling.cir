@@ -1,0 +1,82 @@
+* Audio board, mic input: the network between the socket and the preamp's inputs.
+* Phase 2 had two 47 uF 63 V back to back in each leg (23.5 uF), for phantom power. The box
+* supplies none, so each leg has one 22 uF 16 V part, its + toward the preamp (the mid-rail).
+* The deck compares the two, and shows what the one capacitor sees: the mid-rail in normal use,
+* and the wrong way round if 48 V ever arrives from outside through a desk's 6.8 k.
+* Source: a 150 ohm microphone, 75 ohm a leg. The preamp's inputs draw nothing here.
+.param c1=22u c2=22u vph=0 vcm=0 rfl=1m
+Vm vm 0 DC 2.5
+* a differential source (Vd) on a common-mode source (Vcm). rfl is 1 milliohm for the AC runs;
+* for the 48 V run it is 1e12, because a microphone's coil has no path to ground.
+Vcm cmx 0 DC 0 AC {vcm}
+Rfl cmx cm {rfl}
+Ehot hs cm d 0 0.5
+Ecold hc cm d 0 -0.5
+Vd d 0 DC 0 AC {1-vcm}
+Rsh hs hot 75
+Rsc hc cold 75
+* phantom from outside: 6.8 k a leg (IEC 61938), 0 V when vph=0
+Vph ph 0 DC {vph}
+Rph1 hot ph 6.8k
+Rph2 cold ph 6.8k
+* the board
+R24 hot 0 100k
+R25 cold 0 100k
+C7 m1 hot {c1}
+Resr1 m1 q1 0.5
+C8 m2 cold {c2}
+Resr2 m2 q2 0.5
+R26 q1 k1 10
+R27 q2 k2 10
+R28 k1 mi1 22
+R29 k2 mi2 22
+R30 mi1 vm 1.2k
+R31 mi2 vm 1.2k
+Eo out 0 mi1 mi2 1
+.control
+set noaskquit
+echo "--- 22 uF a leg (fitted): differential"
+ac dec 200 1 100k
+meas ac g1k FIND vdb(out) AT=1k
+meas ac g20 FIND vdb(out) AT=20
+meas ac f3 WHEN vdb(out)=-4.21 RISE=1
+noise v(out) Vd dec 200 20 20k
+print onoise_total
+echo "--- 23.5 uF a leg (phase 2): differential"
+alterparam c1=23.5u
+alterparam c2=23.5u
+reset
+ac dec 200 1 100k
+meas ac g1k FIND vdb(out) AT=1k
+meas ac g20 FIND vdb(out) AT=20
+meas ac f3 WHEN vdb(out)=-4.21 RISE=1
+echo "--- 22 uF, legs 20 % apart each way: common mode turned into signal"
+alterparam c1=26.4u
+alterparam c2=17.6u
+alterparam vcm=1
+reset
+ac dec 200 1 100k
+meas ac cm50 FIND vdb(out) AT=50
+meas ac cm100 FIND vdb(out) AT=100
+meas ac cm1k FIND vdb(out) AT=1k
+echo "--- 23.5 uF, legs 20 % apart each way: the same"
+alterparam c1=28.2u
+alterparam c2=18.8u
+reset
+ac dec 200 1 100k
+meas ac cm50 FIND vdb(out) AT=50
+meas ac cm100 FIND vdb(out) AT=100
+echo "--- DC across a capacitor, + (m1) minus - (hot): in use, then with 48 V from outside"
+alterparam c1=22u
+alterparam c2=22u
+alterparam vcm=0
+reset
+op
+print v(m1)-v(hot)
+alterparam vph=48
+alterparam rfl=1e12
+reset
+op
+print v(m1)-v(hot) v(hot)
+.endc
+.end

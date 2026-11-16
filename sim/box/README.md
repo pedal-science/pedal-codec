@@ -46,3 +46,33 @@ reads the bleed's voltage at intervals after the analogue 5 V comes up. Edit `R4
 
 Below 10 kΩ the mid-rail's own filter (two stages, 0.5 s and 1 s) is what is left, so a smaller
 bleed buys little. With 10 kΩ and a wait of 10 s the step is about a millivolt.
+
+## mic-coupling.cir (2026-11-16)
+
+`ngspice -b mic-coupling.cir`
+
+Phase 2 put two 47 µF 63 V capacitors back to back in each leg of the mic input (23.5 µF), which
+is what phantom power needs. The box supplies none, so each leg has one 22 µF 16 V part with its
+positive end toward the preamp. The deck is the network from the socket to the preamp's inputs
+(100 kΩ bleeds, the capacitor, 10 Ω, 22 Ω, 1.2 kΩ to the mid-rail) with a 150 Ω microphone, and
+compares the two.
+
+| | 22 µF a leg (fitted) | 23.5 µF a leg (phase 2) |
+|---|---|---|
+| Level at 1 kHz, into the preamp | −0.84 dB | −0.84 dB |
+| Level at 20 Hz | −1.16 dB | −1.12 dB |
+| Low corner (−3 dB from that) | 5.1 Hz | 4.8 Hz |
+| The network's noise, 20 Hz to 20 kHz | 0.255 µV | the same: the capacitor isn't in it |
+| Hum rejection at 50 Hz with the two legs' capacitors 20 % apart each way | 27.7 dB | 28.2 dB |
+| The same at 100 Hz | 33.6 dB | 34.2 dB |
+
+So the change costs nothing that can be heard. The last two rows are the worst case the
+capacitors' ±20 % tolerance allows, and are the same weakness in both: at low frequencies the
+rejection of hum picked up on the cable depends on how well the two capacitors match, because
+each works against only 1.2 kΩ. Parts from one reel match far better than 20 %; it is measured
+on the built board (plan.md, phase 8).
+
+What one capacitor sees: 2.5 V, positive end at the mid-rail, in use. With 48 V put on the socket
+from outside through a desk's 6.8 kΩ a leg, 42 V the other way round, which a 16 V part does not
+survive. That is the case the phase 2 pairs were for, and the box gives it up
+([../../docs/box-board.md](../../docs/box-board.md), "Mic input").

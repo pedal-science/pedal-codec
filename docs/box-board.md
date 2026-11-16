@@ -40,13 +40,13 @@ by sheet.
 | Inputs | J2, guitar in, with K2 (the bypass relay at the input), U5 (the buffer) and U6 (its differential driver); J3, mic in, with U7 (the preamp) and U8 (its driver) |
 | Outputs, bypass and EXT FS | U9, both output stages; K1, the bypass relay at the output, with Q1, which drives both coils; J4, stereo out; J5, EXT FS, with its two filters |
 
-Checked on 2026-11-15:
+Checked on 2026-11-15, and again on 2026-11-16 after the mic input's capacitors changed:
 
 | Check | Result |
 |---|---|
 | KiCad ERC, every severity (`kicad-cli sch erc --severity-all`, and Konnect's `run_erc`) | 0 errors, 0 warnings |
-| Netlist (`kicad-cli sch export netlist`), every net read against the intended circuit | 108 nets. The only one-pin nets are the nine flagged no-connects: the unused switch contacts of J2, J4 and J5, K2's spare contact, and U2's NC pin |
-| `LCSC`, `MPN` and a footprint on every symbol | 144 of 144 (the eight test points carry `none` and "PCB test pad", as in phase 2) |
+| Netlist (`kicad-cli sch export netlist`), every net read against the intended circuit | 106 nets. The only one-pin nets are the nine flagged no-connects: the unused switch contacts of J2, J4 and J5, K2's spare contact, and U2's NC pin |
+| `LCSC`, `MPN` and a footprint on every symbol | 140 of 140 (the eight test points carry `none` and "PCB test pad", as in phase 2) |
 | Polarised parts and diodes, read from the netlist | Each electrolytic's positive pin is on its higher-voltage side; the clamps and the coil's diode face the right way |
 
 ## What carried over, and from where
@@ -57,7 +57,7 @@ Checked on 2026-11-15:
 | U4 TAC5212, its decoupling, DREG and VREF capacitors, input filters (47 Ω, 2.2 nF, 10 µF), I2S 33 Ω, address 0 Ω, X1 and its two parts (unfitted) | Codec sheet: U6, X1 | The interrupt (GPO1) goes to a test point, not the Pi. GPIO2 reads the guitar socket |
 | U5 OPA2197 and the instrument path: 100 nF film, 1 MΩ to VM, 1 kΩ, follower, 3.83 kΩ | Input sheet: U10 | No relays after it: it goes straight to its driver |
 | U6 and U8 OPA1637, each with 4.99 kΩ and 220 pF feedback | Input sheet: U12 (and U9) | No |
-| U7 OPA1612 and the mic path: 2 × 47 µF 63 V back to back, 10 Ω, SS14 clamps, 22 Ω, 1.2 kΩ to VM, 249 Ω and 49.9 Ω, 4.99 kΩ | Input sheet: U11 | The phantom feed is gone; a 100 kΩ bleed per leg is added (below) |
+| U7 OPA1612 and the mic path: 22 µF, 10 Ω, SS14 clamps, 22 Ω, 1.2 kΩ to VM, 249 Ω and 49.9 Ω, 4.99 kΩ | Input sheet: U11 | The phantom feed is gone, and with it the two 47 µF 63 V capacitors back to back in each leg: one 22 µF 16 V takes their place, with a 100 kΩ bleed per leg (below) |
 | U9 OPA1656, both halves: 10 µF, the differential-to-single-ended stage, 22 µF, 100 Ω, a bleed | Output sheet: U14, one per output | One dual for both channels; 10 kΩ in place of 1 kΩ + 9.09 kΩ; the bleed is 10 kΩ, not 100 kΩ (below) |
 | K1 and K2 G6K-2F-Y, Q1 2N7002, D5 and D6 1N4148W | Output sheet: K7, Q10, D24 | Two relays on one driver, at the sockets, as a bypass, not two as mutes |
 
@@ -90,11 +90,20 @@ change.
 **Mic input (J3).**
 - Both halves in parallel, as R8 decided: XLR 2 and the tip are hot, XLR 3 and the ring cold,
   XLR 1, the sleeve and the socket's ground contact are ground.
-- **The coupling and protection stay as phase 2 drew them**, two 47 µF 63 V back to back per leg
-  with the 10 Ω, the clamps and the 22 Ω, though the board supplies no phantom power. Then the
-  input survives 48 V arriving from outside (a splitter, a wrong cable), and phase 1's noise and
-  gain figures hold unchanged. One 22 µF 16 V part per leg would save four cans and give up
-  both; it is the owner's to choose.
+- **One 22 µF 16 V capacitor in each leg** (C35, C36), its positive end toward the preamp, then
+  the 10 Ω, the clamps and the 22 Ω as phase 2 drew them. Phase 2 had two 47 µF 63 V parts back
+  to back in each leg, which is what phantom power needs: with 48 V on the socket the capacitor's
+  socket end is the positive one, and without it the preamp's end is. This board supplies no
+  phantom power, so the socket end rests at ground through the bleed, the preamp end at the
+  mid-rail, and one polarised part sees 2.5 V the right way round. The owner asked for the
+  pairs to stay only if they were needed here (2026-11-16); they are not, so four cans and two
+  1 MΩ resistors went. Simulated ([`sim/box/`](../sim/box/README.md), `mic-coupling.cir`): the
+  low corner moves from 4.8 to 5.1 Hz, the level at 20 Hz by 0.04 dB, and the noise not at all.
+- **What that gives up:** 48 V put on this socket from outside. It can only come from another
+  desk's phantom supply reaching this socket, for instance through a passive splitter. Each
+  capacitor would then have about 42 V across it the wrong way round, through the desk's
+  6.8 kΩ, and would be damaged; the clamps still protect the preamp. The sheet says so beside
+  the socket.
 - A 100 kΩ bleed from each leg to ground, at the socket. In phase 2 the phantom feed's resistors
   gave the capacitors' socket side its path to ground; without them it would float.
 
@@ -175,8 +184,10 @@ From 2026-11-14, unchanged:
 6. **The supply rejection, gain and noise simulations were not rerun.** Phase 1's decks cover
    the stages that are unchanged. What changed is small (0.08 dB at the outputs; the mic's bleeds,
    100 kΩ against a 2.4 kΩ input; the bypass, now a wire) and is reasoned here, not simulated.
-7. **The mic input's four 63 V capacitors** stay unless the owner prefers one 22 µF per leg
-   ("Decided while drawing").
+   The mic input's one capacitor per leg has its own deck (`sim/box/mic-coupling.cir`).
+7. **The mic input's four 63 V capacitors: answered 2026-11-16.** The owner asked for them to
+   stay only if they were needed. They were there for phantom power, which this board doesn't
+   supply, so each leg now has one 22 µF 16 V part ("Decided while drawing", "Mic input").
 
 ## Footprints checked against the makers' drawings (2026-11-15)
 
@@ -192,8 +203,9 @@ So the flat-cable socket is a lower-contact part, as box-design.md has it, and i
 ## kicad-happy's analysis (2026-11-16)
 
 kicad-happy 2.3.1's `analyze_schematic.py` and its ngspice pass (`simulate_subcircuits.py`), run as
-phase 2's were: 0 errors, 4 warnings, 63 info findings; 34 subcircuits simulated, all pass. Every
-warning, and the info findings that look like faults, answered:
+phase 2's were, and again after the mic input's capacitors changed: 0 errors, 4 warnings, 61 info
+findings; 34 subcircuits simulated, all pass. Every warning, and the info findings that look like
+faults, answered:
 
 | Finding (rule) | Answer |
 |---|---|
@@ -247,37 +259,36 @@ checked again before ordering.
 | 1 | 10 µH | FNR4030S100MT | C167879 | L1 |
 | 1 | Ferrite | BLM18PG221SN1D | C80165 | FB1 |
 | 1 | 12.288 MHz oscillator, unfitted | HSO321S | C160458 | X1 |
-| 4 | 47 µF 63 V | RV63V47M6X8 | C48971005 | C35–C38 |
 | 4 | 100 µF 16 V | RVT100UF16V67RV0016 | C2887276 | C6, C10, C11, C14 |
-| 2 | 22 µF 16 V | EFVH016ADA220M0554 | C22387968 | C46, C49 |
-| 4 | 10 µF X7R 1206 | CL31B106KAHNNNE | C14860 | C44, C45, C47, C48 |
-| 15 | 10 µF 0805 | CL21A106KAYNNNE | C15850 | C1–C3, C5, C7, C12, C15, C16, C18, C22, C23, C25, C26, C34, C43 |
+| 4 | 22 µF 16 V | EFVH016ADA220M0554 | C22387968 | C35, C36, C44, C47 |
+| 4 | 10 µF X7R 1206 | CL31B106KAHNNNE | C14860 | C42, C43, C45, C46 |
+| 15 | 10 µF 0805 | CL21A106KAYNNNE | C15850 | C1–C3, C5, C7, C12, C15, C16, C18, C22, C23, C25, C26, C34, C41 |
 | 1 | 2.2 µF | CL10A225KO8NNNC | C23630 | C9 |
 | 3 | 1 µF | CL10A105KA8NNNC | C5673 | C8, C20, C21 |
-| 11 | 100 nF | CC0603KRX7R9BB104 | C14663 | C13, C17, C19, C32, C33, C41, C42, C50–C52; C28 unfitted |
+| 11 | 100 nF | CC0603KRX7R9BB104 | C14663 | C13, C17, C19, C32, C33, C39, C40, C48–C50; C28 unfitted |
 | 1 | 100 nF C0G 1206 | GRM31C5C1H104JA01L | C97946 | C29 |
 | 2 | 2.2 nF C0G | 0603CG222J500NT | C2991172 | C24, C27 |
 | 1 | 1 nF | CL10B102KB8NNNC | C1588 | C4 |
-| 4 | 220 pF C0G | GCM1885C2A221JA16D | C388907 | C30, C31, C39, C40 |
+| 4 | 220 pF C0G | GCM1885C2A221JA16D | C388907 | C30, C31, C37, C38 |
 | 3 | 0 Ω | 0603WAF0000T5E | C21189 | R1, R14; R15 unfitted |
-| 2 | 10 Ω | 0603WAF100JT5E | C22859 | R27, R32 |
-| 2 | 22 Ω | 0603WAF220JT5E | C23345 | R28, R33 |
+| 2 | 10 Ω | 0603WAF100JT5E | C22859 | R26, R30 |
+| 2 | 22 Ω | 0603WAF220JT5E | C23345 | R27, R31 |
 | 4 | 33 Ω | 0603WAF330JT5E | C23140 | R10–R13 |
 | 5 | 47 Ω | 0603WAF470JT5E | C23182 | R5–R9 |
-| 1 | 49.9 Ω | 0603WAF499JT5E | C23185 | R37 |
-| 3 | 100 Ω | 0603WAF1000T5E | C22775 | R46, R52, R56 |
-| 2 | 249 Ω | FRC0603F2490TS | C2933176 | R35, R38 |
-| 5 | 1 kΩ | 0603WAF1001T5E | C21190 | R17, R20, R54, R57, R58 |
-| 2 | 1.2 kΩ | 0603WAF1201T5E | C22765 | R29, R34 |
+| 1 | 49.9 Ω | 0603WAF499JT5E | C23185 | R35 |
+| 3 | 100 Ω | 0603WAF1000T5E | C22775 | R44, R50, R54 |
+| 2 | 249 Ω | FRC0603F2490TS | C2933176 | R33, R36 |
+| 5 | 1 kΩ | 0603WAF1001T5E | C21190 | R17, R20, R52, R55, R56 |
+| 2 | 1.2 kΩ | 0603WAF1201T5E | C22765 | R28, R32 |
 | 2 | 3.83 kΩ | FRC0603F3831TS | C2933213 | R21, R22 |
-| 6 | 4.99 kΩ | 0603WAF4991T5E | C23046 | R23, R24, R36, R39–R41 |
-| 4 | 7.5 kΩ | 0603WAF7501T5E | C23234 | R43, R45, R49, R51 |
-| 10 | 10 kΩ | 0603WAF1002T5E | C25804 | R2–R4, R16, R42, R44, R47, R48, R50, R53 |
-| 3 | 100 kΩ | 0603WAF1003T5E | C25803 | R25, R30, R55 |
-| 3 | 1 MΩ | 0603WAF1004T5E | C22935 | R19, R26, R31 |
+| 6 | 4.99 kΩ | 0603WAF4991T5E | C23046 | R23, R24, R34, R37–R39 |
+| 4 | 7.5 kΩ | 0603WAF7501T5E | C23234 | R41, R43, R47, R49 |
+| 10 | 10 kΩ | 0603WAF1002T5E | C25804 | R2–R4, R16, R40, R42, R45, R46, R48, R51 |
+| 3 | 100 kΩ | 0603WAF1003T5E | C25803 | R25, R29, R53 |
+| 1 | 1 MΩ | 0603WAF1004T5E | C22935 | R19 |
 | 1 | 2.2 MΩ | 0603WAF2204T5E | C22938 | R18 |
 
-136 parts and eight test pads.
+132 parts and eight test pads.
 
 ## Parts chosen earlier for what is now the Pi board
 

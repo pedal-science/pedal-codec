@@ -2,7 +2,7 @@
 	(version 20250610)
 	(generator "konnect")
 	(generator_version "10.0")
-	(uuid "6726f7a5-6ce8-4950-ba7f-06ee6adda6b1")
+	(uuid "bd208eac-abf2-40f1-8b51-5247ec9ecf83")
 	(paper "A4")
 	(lib_symbols
 	)
@@ -16,7 +16,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "d307ea50-aa5a-4bf7-b9e5-7f4790d1c613")
+    (uuid "d1c6256b-b1f2-479a-9cc8-c2f36d6b6df8")
     (property "Sheetname" "USB-C power and the Pi header"
       (at 25.4 37.465 0)
       (show_name no)
@@ -31,7 +31,7 @@
     )
     (instances
       (project "pi-board"
-        (path "/6726f7a5-6ce8-4950-ba7f-06ee6adda6b1" (page "2"))
+        (path "/bd208eac-abf2-40f1-8b51-5247ec9ecf83" (page "2"))
       )
     )
   )
@@ -45,7 +45,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "fe7252a3-546c-4ff3-be59-f636f199c0a7")
+    (uuid "2bb108df-c979-45d9-b8d7-2605add9612e")
     (property "Sheetname" "RP2350"
       (at 88.9 37.465 0)
       (show_name no)
@@ -60,7 +60,7 @@
     )
     (instances
       (project "pi-board"
-        (path "/6726f7a5-6ce8-4950-ba7f-06ee6adda6b1" (page "3"))
+        (path "/bd208eac-abf2-40f1-8b51-5247ec9ecf83" (page "3"))
       )
     )
   )
@@ -74,7 +74,7 @@
     (fields_autoplaced yes)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0))
-    (uuid "8f422e46-9934-4fd0-a410-9ad3f8167672")
+    (uuid "a50f40fd-e15d-400c-837f-0b94b1fbaab7")
     (property "Sheetname" "Links, footswitches and MIDI"
       (at 152.4 37.465 0)
       (show_name no)
@@ -89,7 +89,7 @@
     )
     (instances
       (project "pi-board"
-        (path "/6726f7a5-6ce8-4950-ba7f-06ee6adda6b1" (page "4"))
+        (path "/bd208eac-abf2-40f1-8b51-5247ec9ecf83" (page "4"))
       )
     )
   )
