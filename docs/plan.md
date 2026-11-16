@@ -5,26 +5,29 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
 
 ## Next session starts with
 
-1. **The audio board's schematic is drawn, and the owner has looked it over** (2026-11-15: "looks
-   good to my untrained eye"):
-   [`hardware/audio-board/audio-board.pdf`](../hardware/audio-board/audio-board.pdf), five pages,
-   ERC clean. [box-board.md](box-board.md) says what is on it, what was decided while drawing it,
-   and what is open. It is step 4 of the box's plan
-   ([../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md)), for one
-   board of the three.
-2. **The bypass has two relays** (the owner, 2026-11-15), so the bypassed guitar never touches
-   the buffer. One thing is still the owner's to decide: whether the mic input keeps its four
-   63 V capacitors (box-board.md, "Decided while drawing").
-3. **Next here:** the Pi board's schematic and the control board's, each a KiCad project of its
-   own beside `hardware/audio-board/`. The Pi board's flat-cable socket has to carry the nets in
-   box-design.md's "The link's pin order", and its parts for the RP2350 and MIDI are already
-   chosen (box-board.md, last section).
-4. **Before the audio board is laid out:** phase 4's checks, the first of which needs one
-   NMJ6HCD2 in the owner's hand.
+1. **All three of the box's schematics are drawn**, step 4 of the box's plan
+   ([../../pedal.project/docs/box-design.md](../../pedal.project/docs/box-design.md)), each a KiCad
+   project of its own, ERC clean, with its PDF beside it:
+   - the audio board, [`hardware/audio-board/audio-board.pdf`](../hardware/audio-board/audio-board.pdf),
+     which the owner has looked over (2026-11-15: "looks good to my untrained eye"), with the
+     second bypass relay the owner asked for; [box-board.md](box-board.md) is its record;
+   - the Pi board, [`hardware/pi-board/pi-board.pdf`](../hardware/pi-board/pi-board.pdf) (2026-11-16):
+     USB-C power, the ID EEPROM, the RP2350, MIDI in, the footswitches' plugs and both flat-cable
+     sockets; [pi-board.md](pi-board.md);
+   - the control board, [`hardware/control-board/control-board.pdf`](../hardware/control-board/control-board.pdf)
+     (2026-11-16): the encoder and the two buttons; [control-board.md](control-board.md).
+2. **For the owner:** to look over the Pi board and the control board, as with the audio board,
+   and one decision still open from the audio board, whether the mic input keeps its four 63 V
+   capacitors (box-board.md, "Decided while drawing"). The control link's pin order and the
+   RP2350's pin map are in box-design.md, for the firmware to follow.
+3. **Next here:** phase 4's checks. Two need parts in the owner's hand: one NMJ6HCD2 (is its
+   ferrule joined to its sleeve?) and one PJ-324M0 (which contact is tip, which ring?).
 
-Last changed 2026-11-15: phases 3 to 9 rewritten for the audio board. They had described one
-L-shaped board on a ribbon with every control on it, which the box's design replaced on
-2026-11-14 with an audio board, a Pi board and a control board. Before that, 2026-11-14: phase 2's
+Last changed 2026-11-16: the Pi board's and the control board's schematics (phase 3), four
+footprints of our own in `hardware/pedal-codec.pretty/`, and the control link and the RP2350's
+pins in box-design.md. 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
+described one L-shaped board on a ribbon with every control on it, which the box's design
+replaced on 2026-11-14 with an audio board, a Pi board and a control board. Before that, 2026-11-14: phase 2's
 schematic of the full-size HAT, seven sheets, reviewed and redrawn as circuits (`a67618f`), which
 is still in `hardware/` and is where the audio board's parts and values come from. 2026-11-11:
 phase 1 (the TAC5212 brought up from userspace over I2C, every part with its LCSC number and
@@ -90,7 +93,7 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
   [schematic-review.md](schematic-review.md) the review. The independent `kicad-design-review-agent`
   pass moves to phase 3, where it can see the layout too.
 
-## Phase 3: the audio board's schematic
+## Phase 3: the box's schematics
 
 - A KiCad 10 project in `hardware/audio-board/`, drawn through Konnect, with the phase 2 project
   left as it is: the link and the supplies, the codec, the two inputs, the two outputs with the
@@ -98,10 +101,15 @@ Everything runs from a session opened on the workspace, `~/code.local/pedal/`.
 - Every carried-over part keeps its value, footprint, `LCSC` and `MPN`; the five connectors are
   the parts box-design.md chose.
 - The flat cable's pin order decided and written into box-design.md, for the Pi board to match.
+- The Pi board (`hardware/pi-board/`) and the control board (`hardware/control-board/`), each its
+  own project: the Pi board's parts as chosen on 2026-11-14, the RP2350 as Raspberry Pi's minimal
+  design; the control link's pin order and the RP2350's pin map written into box-design.md.
 - ERC clean; the netlist read net by net against the intended circuit.
-- **Done when** the owner has reviewed the schematic as a PDF.
-- **Status (2026-11-15):** done, and seen by the owner, who asked for the second bypass relay the
-  same day. `hardware/audio-board/audio-board.pdf` is the export; box-board.md is the record.
+- **Done when** the owner has reviewed the schematics as PDFs.
+- **Status (2026-11-16):** the audio board done, and seen by the owner, who asked for the second
+  bypass relay (2026-11-15); `hardware/audio-board/audio-board.pdf` is the export, box-board.md
+  the record. The Pi board and the control board drawn on 2026-11-16, ERC clean, waiting for the
+  owner's look: `pi-board.pdf` and `control-board.pdf`, with pi-board.md and control-board.md.
 
 ## Phase 4: checks before layout
 
@@ -112,9 +120,16 @@ Each of these can change the schematic or a footprint, so they come before any c
   the case, and the same part is used for the output and EXT FS. If the ferrule is joined, all
   three bond; the answer goes into box-board.md, with what is done about it. While the part is
   out: which contact each of its six pins is, against KiCad's symbol.
+- **The first PJ-324M0, with a plug and a meter: which terminal is the tip and which the ring?**
+  Read from XKB's cut-away view, not stated on its drawing (pi-board.md, Open 3). MIDI's LED
+  current only flows one way, so if it is the other way round the footprint's T and R pads swap.
 - The footprints against their makers' drawings: both Neutrik sockets and the flat-cable socket.
-  **Done 2026-11-15**, all three match (box-board.md, "Footprints checked"). Still to find: the
-  flat-cable socket's current rating per contact, which is not on its drawing.
+  **Done 2026-11-15**, all three match (box-board.md, "Footprints checked"). The Pi board's and
+  the control board's: **done 2026-11-16**. KiCad's GCT USB4105 footprint fits the USB-C socket;
+  the MIDI socket, L1, the encoder and the buttons have footprints of our own in
+  `hardware/pedal-codec.pretty/`, made through Konnect from the makers' drawings, with round holes
+  where the makers draw slots, since Konnect can't draw a slot (pi-board.md, control-board.md).
+  Still to find: the flat-cable socket's current rating per contact, which is not on its drawing.
 - A TAC5212 footprint from TI's land pattern, with the four corner pads KiCad's lacks.
 - KiCad's "do not populate" attribute set on X1, C28 and R15.
 - The owner's decision on the mic's capacitors, and the schematic changed if it changes.
@@ -122,9 +137,12 @@ Each of these can change the schematic or a footprint, so they come before any c
   with the buffer unpowered, which is why there are two relays; and what is left on an output's
   capacitor when the relays close, which is why its bleed is 10 kΩ and the firmware waits 10 s.
   The right channel into a mono plug is 15 mA rms into its own 100 Ω, reasoned, not simulated.
-- The kicad-happy analysis and its ngspice run on the new project, every finding answered, as
+- The kicad-happy analysis and its ngspice run on the three projects, every finding answered, as
   phase 2 did; the independent `kicad-design-review-agent` pass.
-- **Done when** each has its answer in box-board.md and ERC is still clean.
+- How a HAT+ that powers the Pi tells it so, from Raspberry Pi's HAT+ specification, before the
+  EEPROM's contents are written (pi-board.md, Open 2).
+- **Done when** each has its answer in box-board.md, pi-board.md or control-board.md, and ERC is
+  still clean.
 
 ## Phase 5: layout
 
@@ -139,6 +157,9 @@ Each of these can change the schematic or a footprint, so they come before any c
 - The EXT FS lines run along the board's edge, filtered where they enter.
 - The flat cable's type and the Pi board's pin numbering are fixed here, with the Pi board's
   layout, and written into box-design.md.
+- The Pi board and the control board take their outlines from the same model. The Pi board faces
+  the Pi, so its 40-pin socket is the mirror of an ordinary HAT's (pi-board.md, Open 1); its
+  RP2350 regulator, L1 the right way round, is laid out as the Pico 2's.
 - DRC against JLCPCB's 4-layer rules; the `emc` skill's check; a STEP export set into the case
   model to check every height and that the board tilts into the rear wall.
 - **Done when** DRC is clean and the owner has reviewed the plots and the board in the case model.
@@ -163,6 +184,10 @@ On the bench first, the audio board alone on a short flat cable, then in the box
 - Both relays from the RELAY line, held off for 10 s after the Pi's 3.3 V rises; the thump at
   release measured; the bypass at rest, with no power and a loud guitar; EXT FS's two lines at
   the cable.
+- The Pi board: USB-C power with no Pi on it (5 V and VDD at their test points, the RP2350
+  running), then on the Pi: the ID EEPROM, the RP2350 flashed from the Pi over SWD and reset by
+  it, the UART to the Pi, MIDI in, the footswitches, EXT FS and the control board; the current
+  into the Pi's 3.3 V in standby.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.

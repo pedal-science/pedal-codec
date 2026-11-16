@@ -1,0 +1,102 @@
+(kicad_sch
+	(version 20250610)
+	(generator "konnect")
+	(generator_version "10.0")
+	(uuid "d5ec0165-0080-4388-8a93-f1fd19c48b04")
+	(paper "A4")
+	(lib_symbols
+	)
+  (sheet
+    (at 25.4 38.1)
+    (size 50.8 25.4)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (fields_autoplaced yes)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0))
+    (uuid "9d082ca1-aae5-4e9e-b378-25317fc27a96")
+    (property "Sheetname" "USB-C power and the Pi header"
+      (at 25.4 37.465 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "power-header.kicad_sch"
+      (at 25.4 64.135 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "pi-board"
+        (path "/d5ec0165-0080-4388-8a93-f1fd19c48b04" (page "2"))
+      )
+    )
+  )
+  (sheet
+    (at 88.9 38.1)
+    (size 50.8 25.4)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (fields_autoplaced yes)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0))
+    (uuid "42a6f1c4-15a5-4816-bd9f-df492b934379")
+    (property "Sheetname" "RP2350"
+      (at 88.9 37.465 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "rp2350.kicad_sch"
+      (at 88.9 64.135 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "pi-board"
+        (path "/d5ec0165-0080-4388-8a93-f1fd19c48b04" (page "3"))
+      )
+    )
+  )
+  (sheet
+    (at 152.4 38.1)
+    (size 50.8 25.4)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (fields_autoplaced yes)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0))
+    (uuid "a4737d68-8eff-4234-a426-7358553567ed")
+    (property "Sheetname" "Links, footswitches and MIDI"
+      (at 152.4 37.465 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "sockets.kicad_sch"
+      (at 152.4 64.135 0)
+      (show_name no)
+      (do_not_autoplace no)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "pi-board"
+        (path "/d5ec0165-0080-4388-8a93-f1fd19c48b04" (page "4"))
+      )
+    )
+  )
+  (sheet_instances
+    (path "/"
+      (page "1")
+    )
+  )
+  (embedded_fonts no)
+)

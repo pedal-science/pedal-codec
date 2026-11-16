@@ -264,8 +264,9 @@ checked again before ordering.
 ## Parts chosen earlier for what is now the Pi board
 
 The earlier version of this file chose the RP2350's parts and the MIDI optocoupler, on
-2026-11-14. They are not on the audio board; they are kept here for whoever draws the Pi board.
-Stock and prices were Konnect's copy of the JLCPCB list that day.
+2026-11-14. They are not on the audio board; the Pi board, drawn on 2026-11-16, uses them
+([pi-board.md](pi-board.md)), with the SOIC-8 flash. Stock and prices were Konnect's copy of the
+JLCPCB list that day.
 
 | Part | Use | LCSC | Stock | Price |
 |---|---|---|---|---|

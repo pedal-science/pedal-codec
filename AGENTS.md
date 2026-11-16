@@ -18,11 +18,14 @@ repository owns what.
 |---|---|
 | `../pedal.project/docs/box-design.md` | **The current target**, agreed 2026-11-14: the 1590DD pedal designed to be made again, as an audio board, a Pi board and a control board |
 | `docs/box-board.md` | The audio board's part of that design: what is on it, how its schematic came from the phase 2 sheets, what was decided while drawing it, what is open |
+| `docs/pi-board.md`, `docs/control-board.md` | The same for the Pi board (USB-C power, the ID EEPROM, the RP2350, MIDI, the footswitches' plugs) and the control board (the encoder and the two buttons) |
 | `docs/design.md` | The requirements, the codec (TAC5212) and what its datasheet means for the board, the board's blocks, and the open questions |
 | `docs/plan.md` | The phases from requirements to tested boards, each with its done-when, and the tools each uses. Start at "Next session starts with" |
 | `sim/` | The ngspice decks for the analogue stages and their results (phase 1); `sim/box/` holds the ones written for the audio board |
 | `hardware/` | The phase 2 KiCad 10 project: the full-size HAT's approved schematic, kept as the source of every shared circuit |
 | `hardware/audio-board/` | The box's audio board: its own KiCad 10 project and the PDF of its schematic |
+| `hardware/pi-board/`, `hardware/control-board/` | The box's Pi board and control board, the same way |
+| `hardware/pedal-codec.kicad_sym`, `hardware/pedal-codec.pretty/` | The symbols and footprints of our own, which every project here uses; each footprint's description names the maker's drawing it came from |
 | `overlay/` | The device-tree overlay the HAT+ EEPROM names, once written (phase 5) |
 | `bench-results/` | Measurements of built boards, with their dates. Never `/tmp` |
 

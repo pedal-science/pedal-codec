@@ -15,10 +15,14 @@ ADC, 120 dB DAC):
 - power, I2S audio and control through the Pi's 40-pin header, with a HAT+ ID EEPROM
 
 **Now being made for the pedal's 1590DD case** as its audio board: one guitar input, one mic
-input, a stereo output with a bypass relay, and an external footswitch socket, on a board that
-hangs from its own sockets and joins the Pi's board by one flat cable.
+input, a stereo output with two bypass relays, and an external footswitch socket, on a board
+that hangs from its own sockets and joins the Pi's board by one flat cable.
 [docs/box-board.md](docs/box-board.md) is its specification, and its schematic is in
-[hardware/audio-board/](hardware/audio-board/).
+[hardware/audio-board/](hardware/audio-board/). The case's other two boards are drawn here too:
+the Pi board, a HAT under the Pi with USB-C power, the RP2350 that reads the controls, and MIDI
+in ([docs/pi-board.md](docs/pi-board.md), [hardware/pi-board/](hardware/pi-board/)), and the
+control board, with the encoder and two buttons
+([docs/control-board.md](docs/control-board.md), [hardware/control-board/](hardware/control-board/)).
 
 It is at the design stage: [docs/design.md](docs/design.md) is the design so far and its open
 questions, and [docs/plan.md](docs/plan.md) is the route to boards made and tested.
