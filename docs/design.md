@@ -528,7 +528,9 @@ is the review with every finding answered. What the schematic settled or changed
 - **The TAC5212's footprint needs its corner pins.** The RGE package has four corner VSS pads (A1–A4)
   besides the thermal pad; the symbol carries them, and KiCad's `Texas_RGE0024H` footprint the
   schematic names does not. Phase 3 makes a footprint from TI's land pattern with the corner pads,
-  or the board update will leave A1–A4 unplaced.
+  or the board update will leave A1–A4 unplaced. **Done 2026-11-16 for the audio board**
+  (box-board.md, Open 3), which also found KiCad's footprint's thermal pad too big (2.7 mm against
+  2.1); the phase 2 project here keeps KiCad's.
 - **The phantom feed resistors run warm in a sustained short.** A pin shorted to ground puts about
   0.17 W in each 3.4 kΩ 1206 (two in series per leg), 67 % of its 0.25 W rating, against the usual
   60 % derating. Acceptable for a fault that the player sees and removes; 1210 parts would bring it
