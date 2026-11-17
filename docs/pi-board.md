@@ -27,18 +27,18 @@ design with RP2350* names.
 
 | Sheet | Holds |
 |---|---|
-| USB-C power and the Pi header | J1, the USB-C socket, with D1 (SMAJ5.0A), 10 µF, 5.1 kΩ on each CC, each CC's tap to the RP2350 (10 kΩ, 100 nF), and the shell's 1 MΩ ‖ 10 nF; U6, the eFuse (TPS259470A) that feeds the Pi's 5 V, with its divider, current-limit resistor and slew capacitor, and 100 µF after it; J2, the Pi's 40-pin socket, with 33 Ω on the three I2S lines the Pi drives; U1, the ID EEPROM; J9 and J10, the two fans' plugs, with Q2, which the Pi switches them by; four M2.5 holes |
+| USB-C power and the Pi header | J1, the USB-C socket, with D1 (SMAJ5.0A), 10 µF, 5.1 kΩ on each CC, each CC's tap to the RP2350 (10 kΩ, 100 nF), and the shell's 1 MΩ ‖ 10 nF; U6, the eFuse (TPS259470A) that feeds the Pi's 5 V, with its divider, current-limit resistor and slew capacitor, and 100 µF after it; J2, the Pi's 40-pin socket, with 33 Ω on the three I2S lines the Pi drives; U1, the ID EEPROM; J9, the fan's plug, with Q2, which the Pi switches it by; four M2.5 holes |
 | RP2350 | U4 (AP2112K-3.3), the RP2350's own 3.3 V (VDD); U2, the RP2350A, laid out as Raspberry Pi's minimal design: decoupling, VREG_AVDD's 33 Ω and 4.7 µF, L1 and the core supply's capacitors, U3 (W25Q32JV flash), Y1 (12 MHz, 15 pF, 1 kΩ); Q1, through which the Pi resets it; USB and BOOTSEL to test pads; the resistors to the Pi's UART and SWD; the Pi's 3.3 V sense; the two CC taps on ADC0 and ADC1 |
 | Links, footswitches and MIDI | J3, the audio link, in box-design.md's pin order; J4, the control link; J5–J7, the footswitches' plugs, with their pull-ups and filters; EXT FS's pull-ups; the two lamps' resistors; J8, MIDI in, with U5 (H11L1) |
 
-Checked on 2026-11-16, again after the eFuse went in, again after the supply sensing and the fan went in the same day, and on 2026-11-17 with the second fan's plug:
+Checked on 2026-11-16, again after the eFuse went in, and again after the supply sensing and the fan went in the same day:
 
 | Check | Result |
 |---|---|
 | KiCad ERC, every severity (`kicad-cli sch erc --severity-all`, and Konnect's `run_erc`) | 0 errors, 0 warnings |
 | Sheet pins (Konnect's `validate_sheet_pins`) | 0 issues; the sheets join by global labels |
 | Netlist (`kicad-cli sch export netlist`) | 122 nets, none with one pin. Every pin left open is a flagged no-connect: the USB-C's data and SBU pins, U6's FLT, AUXOFF and ITIMER, the Pi's unused GPIO, the RP2350's GPIO 17–25, 28 and 29, U4's NC pin, U5's pin 3, the MIDI socket's sleeve and two break contacts, the control link's pin 14 |
-| `LCSC`, `MPN` and a footprint on every symbol | 116 of 116 (the four holes and ten test points carry `none`, as in phase 2) |
+| `LCSC`, `MPN` and a footprint on every symbol | 115 of 115 (the four holes and ten test points carry `none`, as in phase 2) |
 | Every LCSC number against JLCPCB's parts list (Konnect's copy) | Each is the MPN and package the schematic says, and in stock |
 
 ## Decided while drawing
@@ -130,11 +130,6 @@ Checked on 2026-11-16, again after the eFuse went in, again after the supply sen
     with no change here. The Pi's own fan header wants a four-wire fan with its small plug, and the ones
     found for it are 30 mm; the place for the fan takes 25 mm (box-design.md, "Heat"). Nothing goes from the
     5 V to the Pi's pins through this: the gate is the only thing GPIO 12 touches.
-    **A second plug, J10, since 2026-11-17** (the owner: two fans, run slowly, if there is
-    room): the same part, wired side by side with J9, so Q2 switches both and the 1N4148W is
-    across both. Two fans of the kind chosen take about 150 mA, well inside Q2 and the diode.
-    Run slowly means `pwm-fan` on GPIO 12; whether these fans run quietly from a chopped
-    supply is tried on the bench, and nothing here changes if they do not.
 
 ## The owner's decisions that bind this board
 
@@ -176,15 +171,14 @@ the Compute Module is for later (6); sockets soldered to the boards and nutted t
 The rest are standard packages in KiCad's own footprints: the RP2350A's QFN-60 with its 3.4 mm
 pad, the SOIC-8s, SOT-23 (Q1, and Q2, whose gate, source and drain are pins 1, 2 and 3 as KiCad's
 AO3400A symbol has them) and SOT-23-5, the 3225 crystal, SMA, the 2 × 20 socket, and
-the JST (J5–J7 and the fans' J9 and J10) and JUSHUO sockets, whose footprints KiCad names for those parts. The JUSHUO one was
+the JST (J5–J7 and the fan's J9) and JUSHUO sockets, whose footprints KiCad names for those parts. The JUSHUO one was
 checked for the audio board (box-board.md).
 
 ## kicad-happy's analysis (2026-11-16)
 
 kicad-happy 2.3.1's `analyze_schematic.py` and its ngspice pass, on the board as it is now (with
 U6, the CC taps and the fan): 1 error, 4 warnings, 51 info findings; 22 subcircuits simulated
-(the dividers, filters, the crystal's load), all pass. It was not run again for J10, which adds
-one plug to two existing nets. Answered:
+(the dividers, filters, the crystal's load), all pass. Answered:
 
 | Finding (rule) | Answer |
 |---|---|
@@ -198,13 +192,13 @@ one plug to two existing nets. Answered:
 ## Power
 
 All from the USB-C socket's 5 V, through U6. The Pi takes most of it; the audio board about 0.15 A over the
-link; the two fans about 150 mA while they run; the RP2350 side, through U4, about 70 mA at most (the
+link; the fan about 70 mA while it runs; the RP2350 side, through U4, about 70 mA at most (the
 RP2350, the optocoupler, the pull-ups and the lamps), which U4 drops to 3.3 V with about 0.12 W.
 
 | Rail | From | Feeds |
 |---|---|---|
 | VBUS | The USB-C socket | U6, D1 and C1 (10 µF) only |
-| +5V | VBUS, through U6 | The Pi (header pins 2 and 4), the audio board (link pin 16), U4, the fans (J9, J10); C3 (100 µF) |
+| +5V | VBUS, through U6 | The Pi (header pins 2 and 4), the audio board (link pin 16), U4, the fan (J9); C3 (100 µF) |
 | VDD | +5V, U4 | The RP2350, its flash, the optocoupler, every pull-up, the control board (control link pin 16) |
 | DVDD | The RP2350's own regulator, L1 | Its core |
 | +3V3 | The Pi | The ID EEPROM, the audio board (link pin 14), the RP2350's sense of it |
@@ -218,7 +212,7 @@ All from JLCPCB's parts list; checked there on 2026-11-16 (stock again before or
 | 1 | USB-C socket, 16 contacts | TYPE-C 16PIN L8.35 | C5379909 | J1 |
 | 1 | 2 × 20 socket, 8.5 mm | 2.54-2*20 | C2977589 | J2 |
 | 2 | Flat-cable socket, 16-way 1.0 mm | AFA07-S16FCC-00 | C13744 | J3, J4 |
-| 5 | JST XH, 2-way, side entry | S2B-XH-A(LF)(SN) | C157931 | J5–J7, J9, J10 |
+| 4 | JST XH, 2-way, side entry | S2B-XH-A(LF)(SN) | C157931 | J5–J7, J9 |
 | 1 | 3.5 mm stereo socket | PJ-324M0 | C2884986 | J8 |
 | 1 | eFuse, 5.5 A, reverse blocking | TPS259470ARPWR | C3662799 | U6 |
 | 1 | RP2350A | RP2350A | C42411118 | U2 |
@@ -258,4 +252,4 @@ All from JLCPCB's parts list; checked there on 2026-11-16 (stock again before or
 | 4 | 100 kΩ | 0603WAF1003T5E | C25803 | R1, R10, R21, R32 |
 | 1 | 1 MΩ | 0603WAF1004T5E | C22935 | R11 |
 
-102 parts, four holes (H1–H4) and ten test pads (TP1–TP10).
+101 parts, four holes (H1–H4) and ten test pads (TP1–TP10).
