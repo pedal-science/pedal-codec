@@ -128,7 +128,9 @@ Checked on 2026-11-16, again after the eFuse went in, and again after the supply
     isn't driving it. GPIO 12 because it is one of the Pi's hardware PWM pins: the kernel's
     `gpio-fan` overlay turns the fan on above a temperature, and `pwm-fan` could vary it later
     with no change here. The Pi's own fan header wants a four-wire fan with its small plug, and the ones
-    found for it are 30 mm; the place for the fan takes 25 mm (box-design.md, "Heat"). Nothing goes from the
+    found for it are 30 mm and four-wire. Since 2026-11-17 the fan is one 30 mm two-wire fan lying
+    on the base plate just in front of this board, between footswitches 1 and 2, drawing air in
+    (box-design.md, "Heat"), so J9 at the board's front edge is beside it. Nothing goes from the
     5 V to the Pi's pins through this: the gate is the only thing GPIO 12 touches.
 
 ## The owner's decisions that bind this board
