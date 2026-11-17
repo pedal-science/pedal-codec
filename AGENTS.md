@@ -18,7 +18,7 @@ repository owns what.
 |---|---|
 | `../pedal.project/docs/box-design.md` | **The current target**, agreed 2026-11-14: the 1590DD pedal designed to be made again, as an audio board, a Pi board and a control board |
 | `docs/box-board.md` | The audio board's part of that design: what is on it, how its schematic came from the phase 2 sheets, what was decided while drawing it, what is open |
-| `docs/pi-board.md`, `docs/control-board.md` | The same for the Pi board (USB-C power, the ID EEPROM, the RP2350, MIDI, the footswitches' plugs, the fan's plug) and the control board (the encoder, the two buttons and their lamps) |
+| `docs/pi-board.md`, `docs/control-board.md` | The same for the Pi board (USB-C power, the ID EEPROM, the RP2350, MIDI, the footswitches' plugs, the two fans' plugs) and the control board (the encoder, the two buttons and their lamps) |
 | `docs/design.md` | The requirements, the codec (TAC5212) and what its datasheet means for the board, the board's blocks, and the open questions |
 | `docs/plan.md` | The phases from requirements to tested boards, each with its done-when, and the tools each uses. Start at "Next session starts with" |
 | `sim/` | The ngspice decks for the analogue stages and their results (phase 1); `sim/box/` holds the ones written for the audio board |

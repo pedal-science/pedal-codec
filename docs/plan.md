@@ -21,7 +21,8 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
    - the RP2350 reads the USB-C socket's CC lines, to warn of a supply under 3 A (pi-board.md,
      Decided 15);
    - a fan is assumed: a plug for it on the Pi board, switched by the Pi's GPIO 12 (pi-board.md,
-     Decided 16); its place and the vents are in box-design.md, "Heat".
+     Decided 16); its place and the vents are in box-design.md, "Heat". Since 2026-11-17 there
+     are two fans and two plugs, J9 and J10, side by side on the one switch.
 3. **Next here:** what is left of phase 4, which is two checks that need parts in the owner's
    hand: one NMJ6HCD2 (is its ferrule joined to its sleeve?) and one PJ-324M0 (which contact is
    tip, which ring?). Both parts are on the order list in
@@ -182,7 +183,8 @@ Each of these can change the schematic or a footprint, so they come before any c
   the Pi, so its 40-pin socket is the mirror of an ordinary HAT's (pi-board.md, Open 1); its
   RP2350 regulator, L1 the right way round, is laid out as the Pico 2's.
 - The Pi board keeps its 17 × 17 mm hole under the processor (the owner, 2026-11-16), has the
-  fan's plug near its front edge, and leaves its rear edge between the USB-C and MIDI sockets
+  two fans' plugs near its front edge (fan A is at the left wall's front corner, fan B on the
+  front wall at x = 58), and leaves its rear edge between the USB-C and MIDI sockets
   clear of tall parts, because the air comes in there (box-design.md, "Heat"). The control
   board's two lamps are 9 mm in front of the buttons.
 - DRC against JLCPCB's 4-layer rules; the `emc` skill's check; a STEP export set into the case
@@ -213,7 +215,7 @@ On the bench first, the audio board alone on a short flat cable, then in the box
   running), then on the Pi: the ID EEPROM, the RP2350 flashed from the Pi over SWD and reset by
   it, the UART to the Pi, MIDI in, the footswitches, EXT FS and the control board; the current
   into the Pi's 3.3 V in standby; the two CC readings with a 3 A supply, a 1.5 A one and a plain
-  USB port, and the warning each should raise; the fan from GPIO 12 (`gpio-fan`); both lamps.
+  USB port, and the warning each should raise; the two fans from GPIO 12 (`gpio-fan`, then `pwm-fan` to run them slowly); both lamps.
 - In the box, on vip: the pedal's own changes land in `pedal.project` and `rtpi` (the codec, its
   overlay and clocking replace the WM8960's), in dependency order, as the pedal's working rules
   say. They are decided with the owner then, not before.
@@ -232,7 +234,7 @@ Evidence into `bench-results/<date>-<what>/`.
 - Pi-master against codec-master clocking, if X1 is fitted on one board.
 - The mic input's rejection of hum at 50 and 100 Hz, which depends on how well its two
   capacitors match (`sim/box/mic-coupling.cir`).
-- The noise floor with the fan running and stopped.
+- The noise floor with the fans running and stopped, and the heat with one fan and with two.
 - **Done when** each number is in `bench-results/` and set against phase 1's predictions.
 
 ## Phase 9: what next
