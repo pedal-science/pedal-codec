@@ -24,12 +24,13 @@ each phase before the next starts (a demo of what was built, as for the pedal's 
      Decided 16); its place and the vents are in box-design.md, "Heat".
 3. **Next here:** what is left of phase 4, which is two checks that need parts in the owner's
    hand: one NMJ6HCD2 (is its ferrule joined to its sleeve?) and one PJ-324M0 (which contact is
-   tip, which ring?). Both parts are on the order list in
-   [../../pedal.project/docs/box-order.md](../../pedal.project/docs/box-order.md). Then phase 5,
-   layout, whose outlines come from the case model. The independent design review runs when the
-   owner asks for it.
+   tip, which ring?). Both were ordered on 2026-11-17, the NMJ6HCD2 on eBay and the PJ-324M0 from
+   LCSC ([../../pedal.project/docs/box-order.md](../../pedal.project/docs/box-order.md)). Then
+   phase 5, layout, whose outlines come from the case model. The independent design review runs
+   when the owner asks for it.
 
-Last changed 2026-11-16: the Pi board's and the control board's schematics (phase 3), footprints
+Last changed 2026-11-18: the parts for phase 4's two checks ordered. 2026-11-16: the Pi board's
+and the control board's schematics (phase 3), footprints
 of our own in `hardware/pedal-codec.pretty/`, the control link and the RP2350's pins in
 box-design.md; then phase 4's desk checks, which added the eFuse and the codec's footprint; then
 the owner's decisions of that day (the lamps, the mic's capacitors, the supply sensing, the fan). 2026-11-15: phases 3 to 9 rewritten for the box's boards. They had
